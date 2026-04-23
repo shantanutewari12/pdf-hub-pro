@@ -194,9 +194,12 @@ export async function protectPdfNote(file: File): Promise<ProcessResult> {
 // ---------- PDF -> Images ----------
 async function loadPdfJs() {
   const pdfjs = await import("pdfjs-dist");
-  // Use bundled worker
-  const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
-  pdfjs.GlobalWorkerOptions.workerSrc = (worker as { default: string }).default;
+  try {
+    const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
+    pdfjs.GlobalWorkerOptions.workerSrc = (worker as { default: string }).default;
+  } catch {
+    pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+  }
   return pdfjs;
 }
 

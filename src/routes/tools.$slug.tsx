@@ -1,11 +1,15 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
-import { UploadDropzone } from "@/components/upload-dropzone";
 import { ToolCard } from "@/components/tool-card";
 import { getTool, tools } from "@/lib/tools";
+
+const UploadDropzone = lazy(() =>
+  import("@/components/upload-dropzone").then((m) => ({ default: m.UploadDropzone }))
+);
 
 export const Route = createFileRoute("/tools/$slug")({
   loader: ({ params }) => {
@@ -68,7 +72,11 @@ function ToolPage() {
               <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">{tool.description}</p>
             </motion.div>
 
-            <UploadDropzone toolName={tool.name.toLowerCase()} toolSlug={tool.slug} />
+            <ClientOnly>
+              <Suspense fallback={<DropzoneFallback />}>
+                <UploadDropzone toolName={tool.name.toLowerCase()} toolSlug={tool.slug} />
+              </Suspense>
+            </ClientOnly>
           </div>
         </section>
 
@@ -84,6 +92,21 @@ function ToolPage() {
         )}
       </main>
       <Footer />
+    </div>
+  );
+}
+
+function ClientOnly({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return <DropzoneFallback />;
+  return <>{children}</>;
+}
+
+function DropzoneFallback() {
+  return (
+    <div className="flex items-center justify-center rounded-3xl border-2 border-dashed border-border bg-card/60 p-16">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
     </div>
   );
 }
