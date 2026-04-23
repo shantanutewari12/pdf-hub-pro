@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { FileText, Github, Twitter, Linkedin } from "lucide-react";
+import { FileText, Github as GithubIcon, Twitter as TwitterIcon, Linkedin as LinkedinIcon } from "lucide-react";
 
 export function Footer() {
   return (
