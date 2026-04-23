@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { FileText, Mail, Phone, Github, Linkedin, Twitter, Heart } from "lucide-react";
+import { FileText, Mail, Phone, Heart, MessageCircle, Send, Globe } from "lucide-react";
 
 const EMAIL = "shantanitiwari12@gmail.com";
 const PHONE_DISPLAY = "+91 93680 42721";
@@ -36,14 +36,14 @@ export function Footer() {
               <a href={`mailto:${EMAIL}`} aria-label="Email" className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition">
                 <Mail className="h-4 w-4" />
               </a>
-              <a href="https://github.com/" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition">
-                <Github className="h-4 w-4" />
+              <a href={`https://wa.me/${PHONE_RAW.replace("+", "")}`} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition">
+                <MessageCircle className="h-4 w-4" />
               </a>
-              <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition">
-                <Linkedin className="h-4 w-4" />
+              <a href={`tel:${PHONE_RAW}`} aria-label="Phone" className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition">
+                <Send className="h-4 w-4" />
               </a>
-              <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition">
-                <Twitter className="h-4 w-4" />
+              <a href="/" aria-label="Website" className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition">
+                <Globe className="h-4 w-4" />
               </a>
             </div>
           </div>
