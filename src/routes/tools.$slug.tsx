@@ -15,7 +15,15 @@ export const Route = createFileRoute("/tools/$slug")({
   loader: ({ params }) => {
     const tool = getTool(params.slug);
     if (!tool) throw notFound();
-    return { tool };
+    return {
+      tool: {
+        slug: tool.slug,
+        name: tool.name,
+        description: tool.description,
+        category: tool.category,
+        pro: tool.pro ?? false,
+      },
+    };
   },
   head: ({ loaderData }) => ({
     meta: loaderData
@@ -73,8 +81,10 @@ export const Route = createFileRoute("/tools/$slug")({
 
 function ToolPage() {
   const { tool } = Route.useLoaderData();
-  const Icon = tool.icon;
-  const related = tools.filter((t) => t.category === tool.category && t.slug !== tool.slug).slice(0, 3);
+  const fullTool = getTool(tool.slug);
+  if (!fullTool) throw notFound();
+  const Icon = fullTool.icon;
+  const related = tools.filter((t) => t.category === fullTool.category && t.slug !== fullTool.slug).slice(0, 3);
 
   return (
     <div className="min-h-screen flex flex-col">
