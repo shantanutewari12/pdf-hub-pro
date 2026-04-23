@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, Sparkles, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { lazy, Suspense, useEffect, useState } from "react";
@@ -39,6 +39,35 @@ export const Route = createFileRoute("/tools/$slug")({
       <Footer />
     </div>
   ),
+  errorComponent: ({ error, reset }) => {
+    const router = useRouter();
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center p-8 text-center">
+          <div>
+            <h1 className="font-display text-3xl font-bold">Unable to open tool</h1>
+            <p className="mt-3 text-muted-foreground">{error.message || "Something went wrong while loading this tool."}</p>
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <button
+                onClick={() => {
+                  router.invalidate();
+                  reset();
+                }}
+                className="inline-flex items-center justify-center rounded-xl bg-gradient-emerald px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-90 transition"
+              >
+                Try again
+              </button>
+              <Link to="/tools" className="inline-flex items-center justify-center rounded-xl border border-border px-5 py-2.5 text-sm font-semibold text-foreground transition hover:bg-card">
+                Back to tools
+              </Link>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  },
   component: ToolPage,
 });
 
