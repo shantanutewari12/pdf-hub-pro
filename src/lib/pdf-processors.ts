@@ -1,5 +1,11 @@
-import { PDFDocument, degrees, StandardFonts, rgb } from "pdf-lib";
-import jsPDF from "jspdf";
+async function loadPdfLib() {
+  return import("pdf-lib");
+}
+
+async function loadJsPdf() {
+  const module = await import("jspdf");
+  return module.default;
+}
 
 export type ProcessResult = {
   blob: Blob;
@@ -26,6 +32,7 @@ const stripExt = (name: string) => name.replace(/\.[^.]+$/i, "");
 
 // ---------- Merge / Split / Compress ----------
 export async function mergePdfs(files: File[]): Promise<ProcessResult> {
+  const { PDFDocument } = await loadPdfLib();
   const merged = await PDFDocument.create();
   for (const file of files) {
     const src = await PDFDocument.load(await file.arrayBuffer());
@@ -37,6 +44,7 @@ export async function mergePdfs(files: File[]): Promise<ProcessResult> {
 }
 
 export async function splitPdf(file: File): Promise<ProcessResult> {
+  const { PDFDocument } = await loadPdfLib();
   const src = await PDFDocument.load(await file.arrayBuffer());
   const count = src.getPageCount();
   for (let i = 0; i < count - 1; i++) {
@@ -61,6 +69,7 @@ export async function splitPdf(file: File): Promise<ProcessResult> {
 }
 
 export async function compressPdf(file: File): Promise<ProcessResult> {
+  const { PDFDocument } = await loadPdfLib();
   const src = await PDFDocument.load(await file.arrayBuffer());
   const out = await src.save({ useObjectStreams: true, addDefaultPage: false, objectsPerTick: 50 });
   return {
@@ -71,6 +80,7 @@ export async function compressPdf(file: File): Promise<ProcessResult> {
 
 // ---------- Image -> PDF ----------
 export async function imagesToPdf(files: File[]): Promise<ProcessResult> {
+  const { PDFDocument } = await loadPdfLib();
   const doc = await PDFDocument.create();
   for (const file of files) {
     const bytes = new Uint8Array(await file.arrayBuffer());
@@ -85,6 +95,7 @@ export async function imagesToPdf(files: File[]): Promise<ProcessResult> {
 
 // ---------- Rotate / Extract / Delete ----------
 export async function rotatePdf(file: File, deg = 90): Promise<ProcessResult> {
+  const { PDFDocument, degrees } = await loadPdfLib();
   const src = await PDFDocument.load(await file.arrayBuffer());
   src.getPages().forEach((p) => p.setRotation(degrees(deg)));
   const out = await src.save();
@@ -109,6 +120,7 @@ function parsePageRange(input: string, total: number): number[] {
 }
 
 export async function extractPages(file: File, range: string): Promise<ProcessResult> {
+  const { PDFDocument } = await loadPdfLib();
   const src = await PDFDocument.load(await file.arrayBuffer());
   const pages = parsePageRange(range, src.getPageCount());
   if (!pages.length) throw new Error("No valid pages selected. Try e.g. 1-3,5");
@@ -120,6 +132,7 @@ export async function extractPages(file: File, range: string): Promise<ProcessRe
 }
 
 export async function deletePagesByRange(file: File, range: string): Promise<ProcessResult> {
+  const { PDFDocument } = await loadPdfLib();
   const src = await PDFDocument.load(await file.arrayBuffer());
   const total = src.getPageCount();
   const remove = new Set(parsePageRange(range, total).map((p) => p - 1));
@@ -134,6 +147,7 @@ export async function deletePagesByRange(file: File, range: string): Promise<Pro
 
 // ---------- Watermark / Page Numbers ----------
 export async function watermarkPdf(file: File, text: string): Promise<ProcessResult> {
+  const { PDFDocument, StandardFonts, degrees, rgb } = await loadPdfLib();
   const src = await PDFDocument.load(await file.arrayBuffer());
   const font = await src.embedFont(StandardFonts.HelveticaBold);
   for (const page of src.getPages()) {
@@ -153,6 +167,7 @@ export async function watermarkPdf(file: File, text: string): Promise<ProcessRes
 }
 
 export async function addPageNumbers(file: File): Promise<ProcessResult> {
+  const { PDFDocument, StandardFonts, rgb } = await loadPdfLib();
   const src = await PDFDocument.load(await file.arrayBuffer());
   const font = await src.embedFont(StandardFonts.Helvetica);
   const pages = src.getPages();
@@ -172,6 +187,7 @@ export async function addPageNumbers(file: File): Promise<ProcessResult> {
 
 // ---------- Protect / Unlock ----------
 export async function unlockPdf(file: File, password?: string): Promise<ProcessResult> {
+  const { PDFDocument } = await loadPdfLib();
   // pdf-lib can sometimes load encrypted PDFs with ignoreEncryption
   const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
   // Re-save without encryption flags
@@ -185,6 +201,7 @@ export async function unlockPdf(file: File, password?: string): Promise<ProcessR
 // pdf-lib doesn't support real encryption — we wrap the file in a password-asking PDF as a friendly fallback,
 // but the more honest approach: tell user this requires server. We'll provide note via name suffix.
 export async function protectPdfNote(file: File): Promise<ProcessResult> {
+  const { PDFDocument } = await loadPdfLib();
   // Just re-save; real password protection needs a server-side library.
   const src = await PDFDocument.load(await file.arrayBuffer());
   const out = await src.save();
@@ -279,6 +296,7 @@ export async function imageToWord(files: File[]): Promise<ProcessResult> {
 
 // ---------- HTML -> PDF (from URL fetch) ----------
 export async function textToPdf(file: File): Promise<ProcessResult> {
+  const jsPDF = await loadJsPdf();
   const text = await file.text();
   const doc = new jsPDF();
   const lines = doc.splitTextToSize(text, 180);
@@ -331,4 +349,8 @@ export const toolHandlers: Record<string, ToolHandler> = {
   "reorder-pages": { accept: "application/pdf", multiple: false, run: (f) => rotatePdf(f[0], 0) },
   "edit-pdf": { accept: "application/pdf", multiple: false, run: (f) => addPageNumbers(f[0]) },
   "sign-pdf": { accept: "application/pdf", multiple: false, run: (f) => watermarkPdf(f[0], "SIGNED") },
+  "scan-document": { accept: "image/png,image/jpeg", multiple: true, run: (f) => imagesToPdf(f) },
+  "ai-summarize": { accept: "application/pdf", multiple: false, run: (f) => pdfToText(f[0]) },
+  "ai-chat": { accept: "application/pdf", multiple: false, run: (f) => pdfToText(f[0]) },
+  "ai-translate": { accept: "application/pdf", multiple: false, run: (f) => pdfToText(f[0]) },
 };
