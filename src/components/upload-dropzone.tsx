@@ -1,27 +1,34 @@
 import { useCallback, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { UploadCloud, FileText, X, Lock } from "lucide-react";
+import { UploadCloud, FileText, X, Lock, Download, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { toolHandlers, downloadResult, type ProcessResult } from "@/lib/pdf-processors";
 
 type Props = {
   toolName?: string;
+  toolSlug?: string;
   accept?: string;
   multiple?: boolean;
-  onProcess?: (files: File[]) => void;
 };
 
-export function UploadDropzone({ toolName = "files", accept, multiple = true, onProcess }: Props) {
+export function UploadDropzone({ toolName = "files", toolSlug, accept, multiple = true }: Props) {
+  const handler = toolSlug ? toolHandlers[toolSlug] : undefined;
+  const effectiveAccept = handler?.accept ?? accept;
+  const effectiveMultiple = handler?.multiple ?? multiple;
+
   const [files, setFiles] = useState<File[]>([]);
   const [drag, setDrag] = useState(false);
   const [progress, setProgress] = useState(0);
   const [processing, setProcessing] = useState(false);
+  const [result, setResult] = useState<ProcessResult | null>(null);
 
   const addFiles = useCallback((list: FileList | null) => {
     if (!list) return;
     const arr = Array.from(list);
-    setFiles((prev) => (multiple ? [...prev, ...arr] : arr.slice(0, 1)));
-  }, [multiple]);
+    setResult(null);
+    setFiles((prev) => (effectiveMultiple ? [...prev, ...arr] : arr.slice(0, 1)));
+  }, [effectiveMultiple]);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -31,15 +38,36 @@ export function UploadDropzone({ toolName = "files", accept, multiple = true, on
 
   const start = async () => {
     if (!files.length) return;
-    setProcessing(true);
-    setProgress(0);
-    for (let i = 0; i <= 100; i += 4) {
-      await new Promise((r) => setTimeout(r, 35));
-      setProgress(i);
+    if (handler?.minFiles && files.length < handler.minFiles) {
+      toast.error(`Please select at least ${handler.minFiles} files`);
+      return;
     }
-    setProcessing(false);
-    toast.success("Processed successfully", { description: "Backend processing coming soon — UI demo only." });
-    onProcess?.(files);
+    setProcessing(true);
+    setProgress(10);
+    const tick = setInterval(() => setProgress((p) => (p < 85 ? p + 5 : p)), 80);
+    try {
+      if (handler) {
+        const res = await handler.run(files);
+        clearInterval(tick);
+        setProgress(100);
+        setResult(res);
+        downloadResult(res);
+        toast.success("Done!", { description: "Your file is ready and downloading." });
+      } else {
+        // Fallback simulation for tools not yet wired
+        for (let i = 10; i <= 100; i += 10) {
+          await new Promise((r) => setTimeout(r, 80));
+          setProgress(i);
+        }
+        clearInterval(tick);
+        toast.info("This tool is coming soon", { description: "UI ready — processing not yet enabled." });
+      }
+    } catch (err) {
+      clearInterval(tick);
+      toast.error("Processing failed", { description: err instanceof Error ? err.message : "Unknown error" });
+    } finally {
+      setProcessing(false);
+    }
   };
 
   return (
@@ -74,8 +102,8 @@ export function UploadDropzone({ toolName = "files", accept, multiple = true, on
             <input
               type="file"
               className="hidden"
-              accept={accept}
-              multiple={multiple}
+              accept={effectiveAccept}
+              multiple={effectiveMultiple}
               onChange={(e) => addFiles(e.target.files)}
             />
             <span className="inline-flex h-11 cursor-pointer items-center justify-center rounded-xl bg-gradient-emerald px-6 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-90 transition">
@@ -83,7 +111,7 @@ export function UploadDropzone({ toolName = "files", accept, multiple = true, on
             </span>
           </label>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
-            <Lock className="h-3 w-3" /> Files auto-delete after 30 minutes
+            <Lock className="h-3 w-3" /> Processed in your browser — files never leave your device
           </div>
         </div>
       </motion.div>
@@ -109,6 +137,7 @@ export function UploadDropzone({ toolName = "files", accept, multiple = true, on
                   <button
                     onClick={() => setFiles((p) => p.filter((_, idx) => idx !== i))}
                     className="p-1 rounded hover:bg-background"
+                    disabled={processing}
                   >
                     <X className="h-4 w-4 text-muted-foreground" />
                   </button>
@@ -131,8 +160,28 @@ export function UploadDropzone({ toolName = "files", accept, multiple = true, on
               </div>
             )}
 
+            {result && !processing && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mt-4 flex items-center justify-between rounded-xl bg-primary/5 border border-primary/20 p-3"
+              >
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                  <span className="font-medium">{result.filename} ready</span>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => downloadResult(result)}
+                  className="bg-gradient-emerald text-primary-foreground hover:opacity-90"
+                >
+                  <Download className="h-4 w-4 mr-1.5" /> Download
+                </Button>
+              </motion.div>
+            )}
+
             <div className="mt-4 flex gap-2 justify-end">
-              <Button variant="ghost" onClick={() => setFiles([])} disabled={processing}>
+              <Button variant="ghost" onClick={() => { setFiles([]); setResult(null); }} disabled={processing}>
                 Clear
               </Button>
               <Button
