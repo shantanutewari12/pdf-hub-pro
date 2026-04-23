@@ -68,7 +68,7 @@ function ToolPage() {
               <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">{tool.description}</p>
             </motion.div>
 
-            <UploadDropzone toolName={tool.name.toLowerCase()} />
+            <UploadDropzone toolName={tool.name.toLowerCase()} toolSlug={tool.slug} />
           </div>
         </section>
 
