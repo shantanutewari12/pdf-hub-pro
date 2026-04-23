@@ -213,14 +213,15 @@ export async function pdfToImages(file: File): Promise<ProcessResult> {
   return { blob: last, filename: `${stripExt(file.name)}-page-${pdf.numPages}.png` };
 }
 
-async function renderPage(pdf: { getPage: (n: number) => Promise<{ getViewport: (o: { scale: number }) => { width: number; height: number }; render: (o: { canvasContext: CanvasRenderingContext2D; viewport: { width: number; height: number } }) => { promise: Promise<void> } }> }, pageNum: number): Promise<Blob> {
-  const page = await pdf.getPage(pageNum);
-  const viewport = page.getViewport({ scale: 2 });
+async function renderPage(pdf: unknown, pageNum: number): Promise<Blob> {
+  const page = await (pdf as { getPage: (n: number) => Promise<unknown> }).getPage(pageNum);
+  const p = page as { getViewport: (o: { scale: number }) => { width: number; height: number }; render: (o: Record<string, unknown>) => { promise: Promise<void> } };
+  const viewport = p.getViewport({ scale: 2 });
   const canvas = document.createElement("canvas");
   canvas.width = viewport.width;
   canvas.height = viewport.height;
   const ctx = canvas.getContext("2d")!;
-  await page.render({ canvasContext: ctx, viewport }).promise;
+  await p.render({ canvasContext: ctx, canvas, viewport }).promise;
   return await new Promise((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
 }
 
