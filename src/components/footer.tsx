@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { FileText, Github as GithubIcon, Twitter as TwitterIcon, Linkedin as LinkedinIcon } from "lucide-react";
+import { FileText, Mail, MessageCircle, Send } from "lucide-react";
 
 export function Footer() {
   return (
@@ -19,7 +19,7 @@ export function Footer() {
               The premium document toolkit. Fast, secure, and beautifully simple.
             </p>
             <div className="mt-6 flex gap-3">
-              {[Twitter, Github, Linkedin].map((Icon, i) => (
+              {[Mail, MessageCircle, Send].map((Icon, i) => (
                 <a key={i} href="#" className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition">
                   <Icon className="h-4 w-4" />
                 </a>
