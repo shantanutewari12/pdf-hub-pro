@@ -1,13 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight, Sparkles, Shield, Zap, FileCheck, Star, ChevronDown,
+  UploadCloud, Brain, X,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ToolCard } from "@/components/tool-card";
-import { UploadDropzone } from "@/components/upload-dropzone";
 import { popularTools, tools } from "@/lib/tools";
 import { Button } from "@/components/ui/button";
 
@@ -34,6 +34,7 @@ function HomePage() {
         <Features />
         <HowItWorks />
         <Testimonials />
+        <AiShowcase />
         <FAQ />
         <CTA />
       </main>
@@ -43,48 +44,132 @@ function HomePage() {
 }
 
 function Hero() {
+  const navigate = useNavigate();
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const handleFiles = useCallback((list: FileList | null) => {
+    if (!list || !list.length) return;
+    setUploadedFiles(Array.from(list));
+    setPickerOpen(true);
+  }, []);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault(); setDragOver(false);
+    handleFiles(e.dataTransfer.files);
+  };
+
+  const filteredTools = tools.filter((t) =>
+    t.name.toLowerCase().includes(search.toLowerCase()) ||
+    t.description.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <section className="relative overflow-hidden grain">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-14 sm:pt-24 pb-10 sm:pb-12">
         <div className="mx-auto max-w-3xl text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-medium shadow-soft"
-          >
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 sm:px-4 py-1.5 text-xs font-medium shadow-soft">
             <Sparkles className="h-3.5 w-3.5 text-accent" />
-            <span>New: AI summarize & chat with any PDF</span>
+            <span>New: AI summarize, translate & chat with any PDF</span>
           </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mt-6 font-display text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight"
-          >
-            Every PDF tool you need.
-            <br />
+          <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="mt-5 sm:mt-6 font-display text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight">
+            Every PDF tool you need.<br />
             <span className="text-gradient-emerald">Beautifully simple.</span>
           </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto"
-          >
+          <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+            className="mt-4 sm:mt-6 text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto px-2">
             Convert, merge, split, compress, edit, sign, and unlock PDFs with a toolkit that feels effortless.
             Encrypted in transit. Files auto-delete after processing.
           </motion.p>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-12 max-w-3xl mx-auto"
-        >
-          <UploadDropzone toolName="PDFs" />
+        {/* Smart Upload Area */}
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          className="mt-8 sm:mt-12 max-w-3xl mx-auto">
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={handleDrop}
+            className={`relative overflow-hidden rounded-3xl border-2 border-dashed p-6 sm:p-10 md:p-14 text-center transition-all ${
+              dragOver ? "border-primary bg-primary/5 scale-[1.01]" : "border-border bg-card/60 hover:border-primary/40 hover:bg-card"
+            }`}>
+            <div className="flex flex-col items-center gap-3 sm:gap-4">
+              <motion.div animate={{ y: dragOver ? -6 : 0 }}
+                className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-emerald shadow-elevated">
+                <UploadCloud className="h-7 w-7 sm:h-8 sm:w-8 text-primary-foreground" strokeWidth={2} />
+              </motion.div>
+              <div>
+                <h3 className="font-display text-lg sm:text-xl font-semibold">Drop any file here</h3>
+                <p className="mt-1 text-xs sm:text-sm text-muted-foreground">Upload a file and choose what you want to do</p>
+              </div>
+              <label>
+                <input type="file" className="hidden" multiple onChange={(e) => handleFiles(e.target.files)} />
+                <span className="inline-flex h-10 sm:h-11 cursor-pointer items-center justify-center rounded-xl bg-gradient-emerald px-5 sm:px-6 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-90 transition">
+                  Select files
+                </span>
+              </label>
+            </div>
+          </div>
         </motion.div>
       </div>
+
+      {/* Tool Picker Popup */}
+      <AnimatePresence>
+        {pickerOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setPickerOpen(false)}>
+            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-card border border-border rounded-3xl shadow-elevated w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}>
+              <div className="p-4 sm:p-6 border-b border-border flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <h3 className="font-display text-lg sm:text-xl font-bold">What do you want to do?</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">File: {uploadedFiles[0]?.name}</p>
+                </div>
+                <button onClick={() => setPickerOpen(false)} className="p-2 rounded-xl hover:bg-muted transition">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="px-4 sm:px-6 py-3 border-b border-border">
+                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search tools..."
+                  className="w-full h-10 rounded-xl border border-border bg-background px-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div className="flex-1 overflow-y-auto p-3 sm:p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {filteredTools.map((t) => {
+                    const Icon = t.icon;
+                    const isAI = t.category === "ai";
+                    return (
+                      <button key={t.slug} onClick={() => { setPickerOpen(false); navigate({ to: "/tools/$slug", params: { slug: t.slug } }); }}
+                        className={`flex items-center gap-3 rounded-xl border p-3 text-left transition hover:bg-primary/5 hover:border-primary/30 ${
+                          isAI ? "border-primary/20 bg-primary/5" : "border-border"
+                        }`}>
+                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                          isAI ? "bg-gradient-to-br from-primary via-emerald-500 to-teal-500" : "bg-primary/10"
+                        }`}>
+                          <Icon className={`h-4 w-4 ${isAI ? "text-primary-foreground" : "text-primary"}`} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate flex items-center gap-1">
+                            {t.name}
+                            {isAI && <Sparkles className="h-3 w-3 text-gold" />}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">{t.description}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-accent/10 blur-3xl pointer-events-none" />
       <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
@@ -296,28 +381,66 @@ function FAQ() {
   );
 }
 
+function AiShowcase() {
+  const aiTools = tools.filter((t) => t.category === "ai");
+  return (
+    <section className="py-16 sm:py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
+          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary/10 via-accent/10 to-primary/5 border border-primary/20 px-4 py-1.5 text-xs font-semibold text-primary mb-3">
+            <Brain className="h-3.5 w-3.5" /> AI-POWERED
+          </div>
+          <h2 className="mt-2 font-display text-2xl sm:text-3xl md:text-4xl font-bold">
+            Smart tools powered by <span className="text-gradient-emerald">AI</span>
+          </h2>
+          <p className="mt-3 text-sm sm:text-base text-muted-foreground">
+            Summarize documents, translate to any language, and chat with your PDFs — all in seconds
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-4xl mx-auto">
+          {aiTools.map((t, i) => (
+            <motion.div key={t.slug} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+              <Link to="/tools/$slug" params={{ slug: t.slug }}
+                className="block rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5 p-5 sm:p-6 shadow-soft hover:shadow-elevated hover:border-primary/40 transition group">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary via-emerald-500 to-teal-500 shadow-soft mb-4 group-hover:scale-110 transition-transform">
+                  <t.icon className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <h3 className="font-display text-lg font-semibold flex items-center gap-1.5">
+                  {t.name} <Sparkles className="h-3.5 w-3.5 text-gold" />
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{t.description}</p>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function CTA() {
   return (
-    <section className="py-24">
+    <section className="py-16 sm:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-emerald p-12 sm:p-16 text-center shadow-elevated">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-emerald p-8 sm:p-12 md:p-16 text-center shadow-elevated">
           <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
           <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
           <div className="relative">
-            <h2 className="font-display text-3xl sm:text-5xl font-bold text-primary-foreground">
+            <h2 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-primary-foreground">
               Ready to work with PDFs the right way?
             </h2>
-            <p className="mt-4 text-primary-foreground/80 max-w-xl mx-auto">
+            <p className="mt-3 sm:mt-4 text-sm sm:text-base text-primary-foreground/80 max-w-xl mx-auto">
               Join 12 million professionals who trust PDF Master for their document workflow.
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 justify-center">
               <Link to="/auth/register">
-                <Button size="lg" className="bg-gradient-gold text-emerald-deep hover:opacity-95 shadow-gold font-semibold">
+                <Button size="lg" className="w-full sm:w-auto bg-gradient-gold text-emerald-deep hover:opacity-95 shadow-gold font-semibold">
                   Start free <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>
               <Link to="/tools">
-                <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+                <Button size="lg" className="w-full sm:w-auto bg-white/15 border-2 border-white text-white hover:bg-white/25 font-semibold">
                   Browse tools
                 </Button>
               </Link>
@@ -328,3 +451,4 @@ function CTA() {
     </section>
   );
 }
+
