@@ -104,5 +104,5 @@ Contributions are what make the open-source community such an amazing place to l
 ---
 
 <div align="center">
-  Developed with ❤️ by <a href="https://github.com/shantanutewari12">Shantanu Tewari</a>
+  Developed with ❤️ by <a href="https://github.com/shantanutewari12">Shantanu Tiwari</a>
 </div>
