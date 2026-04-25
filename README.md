@@ -1,7 +1,5 @@
 <div align="center">
 
-![PDF Master Banner](file:///C:/Users/lko42/.gemini/antigravity/brain/e493d909-4097-4149-89e9-01a80de883aa/pdf_master_banner_1777126179713.png)
-
 # 📄 PDF Master Pro
 ### The premium, all-in-one PDF toolkit powered by AI.
 
