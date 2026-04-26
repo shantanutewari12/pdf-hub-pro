@@ -1,9 +1,10 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, Menu, X, ChevronRight } from "lucide-react";
+import { FileText, Menu, X, ChevronRight, Download } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "./theme-toggle";
 
 const links = [
   { to: "/", label: "Home" },
@@ -17,111 +18,179 @@ export function Navbar() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handler, { passive: true });
-    return () => window.removeEventListener("scroll", handler);
+
+    // PWA Install Logic
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBtn(true);
+    };
+
+    const handleAppInstalled = () => {
+      setShowInstallBtn(false);
+      setDeferredPrompt(null);
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.addEventListener("appinstalled", handleAppInstalled);
+    }
+
+    return () => {
+      window.removeEventListener("scroll", handler);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
   }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setShowInstallBtn(false);
+    }
+    setDeferredPrompt(null);
+  };
 
   return (
     <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className={`sticky top-0 z-50 transition-all duration-300 ${
+      className={`sticky top-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "border-b border-border/40 bg-background/80 backdrop-blur-xl shadow-lg"
-          : "border-b border-transparent bg-transparent"
+          ? "border-b border-border/40 bg-background/60 backdrop-blur-2xl shadow-xl py-2"
+          : "border-b border-transparent bg-transparent py-4"
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link to="/" className="flex items-center gap-2.5 group">
+      <div className="relative mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link to="/" className="flex items-center gap-2.5 group shrink-0">
           <div className="relative">
-            <div className="absolute inset-0 rounded-xl bg-gradient-emerald blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-emerald shadow-soft transition-transform group-hover:scale-110">
-              <FileText className="h-5 w-5 text-primary-foreground" strokeWidth={2.5} />
+            <div className="absolute inset-0 rounded-xl bg-gradient-emerald blur-lg opacity-40 group-hover:opacity-70 transition-opacity duration-500" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-emerald shadow-soft transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+              <FileText className="h-5.5 w-5.5 text-white" strokeWidth={2.5} />
             </div>
           </div>
-          <span className="font-display text-xl font-bold tracking-tight">
+          <span className="font-display text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
             PDF<span className="text-gradient-gold">Master</span>
           </span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-0.5">
+        <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-1">
           {links.map((l) => (
             <Link
               key={l.to}
               to={l.to}
-              className="relative px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground group"
-              activeProps={{ className: "text-foreground" }}
+              className="relative px-4 py-2 text-sm font-medium text-muted-foreground transition-all duration-300 hover:text-foreground hover:bg-foreground/5 rounded-lg group"
+              activeProps={{ className: "text-foreground bg-foreground/5" }}
               activeOptions={{ exact: l.to === "/" }}
             >
               {l.label}
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 bg-gradient-emerald rounded-full transition-all group-hover:w-6" />
+              <motion.span 
+                layoutId="nav-underline"
+                className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity" 
+              />
             </Link>
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-2">
-          {user ? (
-            <>
-              <Button variant="ghost" onClick={() => navigate({ to: "/dashboard" })} className="hover:bg-primary/5">Dashboard</Button>
-              <Button variant="outline" className="border-border/60 hover:bg-primary/5" onClick={async () => { await signOut(); navigate({ to: "/" }); }}>Sign out</Button>
-            </>
-          ) : (
-            <>
-              <Button variant="ghost" onClick={() => navigate({ to: "/auth/login" })} className="hover:bg-primary/5">Log in</Button>
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="hidden md:flex items-center gap-3 pr-3 border-r border-border/40">
+            {showInstallBtn && (
               <Button
-                onClick={() => navigate({ to: "/auth/register" })}
-                className="bg-gradient-emerald text-primary-foreground hover:opacity-90 shadow-soft group"
+                variant="outline"
+                size="sm"
+                onClick={handleInstallClick}
+                className="hidden md:flex items-center gap-2 border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-all rounded-xl"
               >
-                Get started
-                <ChevronRight className="h-4 w-4 ml-0.5 transition-transform group-hover:translate-x-0.5" />
+                <Download className="h-4 w-4" />
+                Install App
               </Button>
-            </>
-          )}
-        </div>
+            )}
+            <ThemeToggle />
+          </div>
 
-        <button
-          className="md:hidden rounded-lg p-2 hover:bg-muted transition"
-          onClick={() => setOpen((o) => !o)}
-          aria-label="Toggle menu"
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+          <div className="hidden md:flex items-center gap-2">
+            {user ? (
+              <>
+                <Button variant="ghost" onClick={() => navigate({ to: "/dashboard" })} className="hover:bg-primary/5 rounded-xl px-5">Dashboard</Button>
+                <Button variant="outline" className="border-border/60 hover:bg-primary/5 rounded-xl px-5" onClick={async () => { await signOut(); navigate({ to: "/" }); }}>Sign out</Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => navigate({ to: "/auth/login" })} className="hover:bg-primary/5 rounded-xl px-5">Log in</Button>
+                <Button
+                  onClick={() => navigate({ to: "/auth/register" })}
+                  className="bg-gradient-emerald text-white hover:opacity-90 shadow-soft group rounded-xl px-6"
+                >
+                  Get started
+                  <ChevronRight className="h-4 w-4 ml-0.5 transition-transform group-hover:translate-x-0.5" />
+                </Button>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 md:hidden">
+             <ThemeToggle />
+             <button
+              className="rounded-xl p-2.5 bg-foreground/5 hover:bg-foreground/10 transition-all"
+              onClick={() => setOpen((o) => !o)}
+              aria-label="Toggle menu"
+            >
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
+        </div>
       </div>
 
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur-xl overflow-hidden"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur-2xl overflow-hidden"
           >
-            <div className="px-4 py-4 space-y-1">
+            <div className="px-4 py-6 space-y-2">
               {links.map((l) => (
                 <Link
                   key={l.to}
                   to={l.to}
                   onClick={() => setOpen(false)}
-                  className="block rounded-xl px-4 py-3 text-sm font-medium hover:bg-primary/5 transition"
+                  className="block rounded-xl px-4 py-3.5 text-base font-medium hover:bg-primary/5 transition-all border border-transparent hover:border-border/40"
                 >
                   {l.label}
                 </Link>
               ))}
-              <div className="pt-3 border-t border-border/40 flex flex-col gap-2">
+              
+              {showInstallBtn && (
+                <button
+                  onClick={handleInstallClick}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-base font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                >
+                  <Download className="h-5 w-5" />
+                  Install App
+                </button>
+              )}
+
+              <div className="pt-4 mt-4 border-t border-border/40 flex flex-col gap-3">
                 {user ? (
                   <>
-                    <Button variant="outline" className="justify-start" onClick={() => { setOpen(false); navigate({ to: "/dashboard" }); }}>Dashboard</Button>
-                    <Button variant="ghost" onClick={async () => { await signOut(); setOpen(false); navigate({ to: "/" }); }}>Sign out</Button>
+                    <Button variant="outline" className="justify-center py-6 rounded-xl" onClick={() => { setOpen(false); navigate({ to: "/dashboard" }); }}>Dashboard</Button>
+                    <Button variant="ghost" className="justify-center py-6 rounded-xl" onClick={async () => { await signOut(); setOpen(false); navigate({ to: "/" }); }}>Sign out</Button>
                   </>
                 ) : (
                   <>
-                    <Button variant="outline" className="justify-start" onClick={() => { setOpen(false); navigate({ to: "/auth/login" }); }}>Log in</Button>
-                    <Button className="bg-gradient-emerald text-primary-foreground justify-start" onClick={() => { setOpen(false); navigate({ to: "/auth/register" }); }}>
-                      Get started <ChevronRight className="h-4 w-4 ml-1" />
+                    <Button variant="outline" className="justify-center py-6 rounded-xl text-base" onClick={() => { setOpen(false); navigate({ to: "/auth/login" }); }}>Log in</Button>
+                    <Button className="bg-gradient-emerald text-white justify-center py-6 rounded-xl text-base font-semibold" onClick={() => { setOpen(false); navigate({ to: "/auth/register" }); }}>
+                      Get started <ChevronRight className="h-5 w-5 ml-1" />
                     </Button>
                   </>
                 )}
@@ -133,3 +202,4 @@ export function Navbar() {
     </motion.header>
   );
 }
+

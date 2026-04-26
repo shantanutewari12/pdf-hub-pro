@@ -1,6 +1,9 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
+import { useEffect } from "react";
+// @ts-ignore
+import { registerSW } from 'virtual:pwa-register';
 
 import appCss from "../styles.css?url";
 
@@ -38,8 +41,15 @@ export const Route = createRootRoute({
       { property: "og:description", content: "Convert, edit, merge, split, compress, sign and protect PDFs. Beautifully simple." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "PDFMaster" },
+      { name: "theme-color", content: "#10b981" },
     ],
     links: [
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -70,6 +80,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      registerSW({ immediate: true });
+    }
+  }, []);
+
   return (
     <AuthProvider>
       <Outlet />
@@ -77,3 +93,4 @@ function RootComponent() {
     </AuthProvider>
   );
 }
+

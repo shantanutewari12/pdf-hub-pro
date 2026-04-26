@@ -31,3 +31,12 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# User Guide Documents (local only - never push)
+userguidedocument/
+userguidedocument/PDF_Master_Pro_Technical_Doc (1).pdf
+
+# User Guide Documents (local only — never push)
+userguidedocument/
+userguidedocument/**
+userguidedocument/*.pdf
