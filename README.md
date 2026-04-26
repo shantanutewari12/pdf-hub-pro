@@ -1,6 +1,7 @@
 <div align="center">
 
 # 📄 PDF Master Pro
+
 ### The premium, all-in-one PDF toolkit powered by AI.
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-emerald?style=for-the-badge&logo=vercel)](https://pdf-hub-pro.vercel.app)
@@ -21,22 +22,26 @@
 PDF Master Pro is built to handle every document workflow with elegance and speed.
 
 ### 🧠 AI-Powered Intelligence
+
 - **AI Summarize**: Get instant, actionable insights from long documents.
 - **Chat with PDF**: Ask questions and get cited answers directly from your files.
 - **AI Translate**: Translate PDFs while perfectly preserving the original layout.
 - **Handwriting OCR**: Convert handwritten notes into editable digital text.
 
 ### 🔄 Conversion Suite
+
 - **PDF to Office**: High-fidelity conversion to Word, Excel, and PowerPoint.
 - **Office to PDF**: Polish your documents into professional PDFs.
 - **Image Magic**: Convert JPG/PNG to PDF or extract images from PDF pages.
 
 ### 🛠️ Professional Editors
+
 - **Edit Directly**: Add text, shapes, and annotations effortlessly.
 - **Organize**: Merge, split, reorder, or delete pages with drag-and-drop.
 - **Optimize**: Compress files without losing pixel-perfect quality.
 
 ### 🔒 Enterprise Security
+
 - **256-bit Encryption**: Your data is safe in transit.
 - **Privacy First**: Files are automatically deleted 30 minutes after processing.
 - **Protect & Sign**: Add passwords, restrictions, or digital signatures.
@@ -58,10 +63,12 @@ PDF Master Pro is built to handle every document workflow with elegance and spee
 ## 🛠️ Getting Started
 
 ### Prerequisites
+
 - [Node.js](https://nodejs.org/) (v18+)
 - [npm](https://www.npmjs.com/) or [Bun](https://bun.sh/)
 
 ### Installation
+
 1. Clone the repo
    ```bash
    git clone https://github.com/shantanutewari12/pdf-hub-pro.git
@@ -76,6 +83,7 @@ PDF Master Pro is built to handle every document workflow with elegance and spee
    ```
 
 ### Build for Production
+
 ```bash
 npm run build
 ```

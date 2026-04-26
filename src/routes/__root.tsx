@@ -3,7 +3,7 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import { useEffect } from "react";
 // @ts-ignore
-import { registerSW } from 'virtual:pwa-register';
+import { registerSW } from "virtual:pwa-register";
 
 import appCss from "../styles.css?url";
 
@@ -35,10 +35,18 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "PDF Master — The premium PDF toolkit" },
-      { name: "description", content: "Convert, edit, merge, split, compress, sign and protect PDFs. 28+ premium tools, beautifully simple." },
+      {
+        name: "description",
+        content:
+          "Convert, edit, merge, split, compress, sign and protect PDFs. 28+ premium tools, beautifully simple.",
+      },
       { name: "author", content: "PDF Master" },
       { property: "og:title", content: "PDF Master — The premium PDF toolkit" },
-      { property: "og:description", content: "Convert, edit, merge, split, compress, sign and protect PDFs. Beautifully simple." },
+      {
+        property: "og:description",
+        content:
+          "Convert, edit, merge, split, compress, sign and protect PDFs. Beautifully simple.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "mobile-web-app-capable", content: "yes" },
@@ -81,7 +89,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       registerSW({ immediate: true });
     }
   }, []);
@@ -93,4 +101,3 @@ function RootComponent() {
     </AuthProvider>
   );
 }
-

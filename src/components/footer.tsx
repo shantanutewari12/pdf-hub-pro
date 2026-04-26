@@ -36,9 +36,13 @@ export function Footer() {
     }
     if (!deferredPrompt) {
       if (isAndroid) {
-        alert("To install on Android: Tap the 3 dots (⋮) in Chrome and select 'Install app' or 'Add to Home screen' 🚀");
+        alert(
+          "To install on Android: Tap the 3 dots (⋮) in Chrome and select 'Install app' or 'Add to Home screen' 🚀",
+        );
       } else if (import.meta.env.DEV) {
-        alert("PWA Install prompt only works in production or when the browser detects installability. In Dev Mode, this is just a preview of the button! 🚀");
+        alert(
+          "PWA Install prompt only works in production or when the browser detects installability. In Dev Mode, this is just a preview of the button! 🚀",
+        );
       }
       return;
     }
@@ -71,13 +75,14 @@ export function Footer() {
             </Link>
 
             <p className="mt-4 text-sm text-cream/70 max-w-xs leading-relaxed">
-              The premium document toolkit trusted by thousands. Fast, secure, and beautifully crafted.
+              The premium document toolkit trusted by thousands. Fast, secure, and beautifully
+              crafted.
             </p>
 
             {(showInstallBtn || isIOS || isAndroid || import.meta.env.DEV) && (
               <div className="mt-6 md:hidden">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleInstallClick}
                   className="bg-white/5 border-white/10 hover:bg-white/10 text-white gap-2 rounded-xl"
                 >
@@ -91,10 +96,17 @@ export function Footer() {
             <div className="mt-5 space-y-2.5">
               {[
                 { icon: Zap, text: "28+ premium PDF tools", color: "text-gold" },
-                { icon: Shield, text: "256-bit encrypted & auto-delete", color: "text-emerald-300" },
+                {
+                  icon: Shield,
+                  text: "256-bit encrypted & auto-delete",
+                  color: "text-emerald-300",
+                },
                 { icon: Globe, text: "100% browser-based — always private", color: "text-sky-300" },
               ].map((item) => (
-                <div key={item.text} className="flex items-center gap-2.5 text-sm text-cream/80 group">
+                <div
+                  key={item.text}
+                  className="flex items-center gap-2.5 text-sm text-cream/80 group"
+                >
                   <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/5 group-hover:bg-white/10 transition">
                     <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
                   </span>
@@ -105,40 +117,68 @@ export function Footer() {
 
             {/* Social icons */}
             <div className="mt-6 flex gap-3">
-              <a href={`mailto:${EMAIL}`} aria-label="Email us" className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 hover:scale-110 transition-all">
+              <a
+                href={`mailto:${EMAIL}`}
+                aria-label="Email us"
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 hover:scale-110 transition-all"
+              >
                 <Mail className="h-4 w-4" />
               </a>
-              <a href="https://wa.me/919368042721" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 hover:bg-[#25d366]/20 hover:scale-110 transition-all">
-                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              <a
+                href="https://wa.me/919368042721"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="WhatsApp"
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 hover:bg-[#25d366]/20 hover:scale-110 transition-all"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4 fill-current"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                 </svg>
               </a>
             </div>
           </div>
 
           {/* Link columns */}
-          <FooterCol title="Product" links={[
-            { to: "/tools", label: "All tools" },
-            { to: "/pricing", label: "Pricing" },
-            { to: "/dashboard", label: "Dashboard" },
-          ]} />
-          <FooterCol title="Company" links={[
-            { to: "/contact", label: "Contact" },
-            { to: "/privacy", label: "Privacy" },
-          ]} />
+          <FooterCol
+            title="Product"
+            links={[
+              { to: "/tools", label: "All tools" },
+              { to: "/pricing", label: "Pricing" },
+              { to: "/dashboard", label: "Dashboard" },
+            ]}
+          />
+          <FooterCol
+            title="Company"
+            links={[
+              { to: "/contact", label: "Contact" },
+              { to: "/privacy", label: "Privacy" },
+            ]}
+          />
           <div className="flex flex-col">
-            <h4 className="font-display text-sm font-semibold mb-4 text-gold uppercase tracking-wider">Account</h4>
+            <h4 className="font-display text-sm font-semibold mb-4 text-gold uppercase tracking-wider">
+              Account
+            </h4>
             <ul className="space-y-3">
               {user ? (
                 <>
                   <li>
-                    <Link to="/dashboard" className="text-sm text-cream/60 hover:text-cream transition-colors inline-flex items-center gap-1 group">
+                    <Link
+                      to="/dashboard"
+                      className="text-sm text-cream/60 hover:text-cream transition-colors inline-flex items-center gap-1 group"
+                    >
                       Dashboard
                       <ArrowUpRight className="h-3 w-3 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                     </Link>
                   </li>
                   <li>
-                    <button onClick={() => signOut()} className="text-sm text-cream/60 hover:text-cream transition-colors inline-flex items-center gap-1 group">
+                    <button
+                      onClick={() => signOut()}
+                      className="text-sm text-cream/60 hover:text-cream transition-colors inline-flex items-center gap-1 group"
+                    >
                       Log out
                     </button>
                   </li>
@@ -146,13 +186,19 @@ export function Footer() {
               ) : (
                 <>
                   <li>
-                    <Link to="/auth/login" className="text-sm text-cream/60 hover:text-cream transition-colors inline-flex items-center gap-1 group">
+                    <Link
+                      to="/auth/login"
+                      className="text-sm text-cream/60 hover:text-cream transition-colors inline-flex items-center gap-1 group"
+                    >
                       Log in
                       <ArrowUpRight className="h-3 w-3 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                     </Link>
                   </li>
                   <li>
-                    <Link to="/auth/register" className="text-sm text-cream/60 hover:text-cream transition-colors inline-flex items-center gap-1 group">
+                    <Link
+                      to="/auth/register"
+                      className="text-sm text-cream/60 hover:text-cream transition-colors inline-flex items-center gap-1 group"
+                    >
                       Sign up free
                       <ArrowUpRight className="h-3 w-3 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                     </Link>
@@ -166,10 +212,14 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 sm:mt-14 pt-6 border-t border-white/10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-xs text-cream/50">© {new Date().getFullYear()} PDF Master. All rights reserved.</p>
+            <p className="text-xs text-cream/50">
+              © {new Date().getFullYear()} PDF Master. All rights reserved.
+            </p>
             <p className="flex items-center gap-1.5 text-xs text-cream/50">
               Crafted with <Heart className="h-3 w-3 text-gold fill-gold animate-pulse" /> by{" "}
-              <span className="font-semibold text-gold hover:text-gold/80 transition">Shantanu Tiwari</span>
+              <span className="font-semibold text-gold hover:text-gold/80 transition">
+                Shantanu Tiwari
+              </span>
             </p>
           </div>
         </div>
@@ -181,11 +231,16 @@ export function Footer() {
 function FooterCol({ title, links }: { title: string; links: { to: string; label: string }[] }) {
   return (
     <div>
-      <h4 className="font-display text-sm font-semibold mb-4 text-gold uppercase tracking-wider">{title}</h4>
+      <h4 className="font-display text-sm font-semibold mb-4 text-gold uppercase tracking-wider">
+        {title}
+      </h4>
       <ul className="space-y-3">
         {links.map((l) => (
           <li key={l.to}>
-            <Link to={l.to} className="text-sm text-cream/60 hover:text-cream transition-colors inline-flex items-center gap-1 group">
+            <Link
+              to={l.to}
+              className="text-sm text-cream/60 hover:text-cream transition-colors inline-flex items-center gap-1 group"
+            >
               {l.label}
               <ArrowUpRight className="h-3 w-3 opacity-0 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all" />
             </Link>

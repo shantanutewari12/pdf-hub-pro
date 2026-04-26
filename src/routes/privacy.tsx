@@ -28,12 +28,12 @@ export const Route = createFileRoute("/privacy")({
               processing — usually much sooner. We retain no copies.
             </Section>
             <Section title="Account data">
-              When you sign up, we store your email and authentication credentials. We use this
-              only to provide the service and never share it with third parties.
+              When you sign up, we store your email and authentication credentials. We use this only
+              to provide the service and never share it with third parties.
             </Section>
             <Section title="Cookies">
-              We use essential cookies for authentication and a privacy-respecting analytics
-              service to understand which features matter most. No advertising cookies, ever.
+              We use essential cookies for authentication and a privacy-respecting analytics service
+              to understand which features matter most. No advertising cookies, ever.
             </Section>
             <Section title="Contact">
               Questions about privacy? Email us at hello@pdfmaster.app.

@@ -30,9 +30,7 @@ export function ToolCard({ tool, index = 0 }: { tool: Tool; index?: number }) {
             <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-all group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </div>
         </div>
-        <h3 className="font-display font-semibold text-base text-foreground mb-1.5">
-          {tool.name}
-        </h3>
+        <h3 className="font-display font-semibold text-base text-foreground mb-1.5">{tool.name}</h3>
         <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
           {tool.description}
         </p>

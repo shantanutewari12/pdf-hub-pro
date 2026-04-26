@@ -5,7 +5,5 @@ export const Route = createFileRoute("/tools")({
 });
 
 function ToolsLayout() {
-  return (
-    <Outlet />
-  );
+  return <Outlet />;
 }

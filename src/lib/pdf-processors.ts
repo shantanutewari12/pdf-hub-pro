@@ -10,7 +10,7 @@ async function loadJsPdf() {
 export type ProcessResult = {
   blob: Blob;
   filename: string;
-  text?: string;       // for text/summary preview
+  text?: string; // for text/summary preview
   previewUrl?: string; // canvas dataUrl for PDF first-page preview
 };
 
@@ -52,22 +52,25 @@ const stripExt = (name: string) => name.replace(/\.[^.]+$/i, "");
 
 // ---------- Clean PDF text artifacts ----------
 function cleanStr(raw: string): string {
-  return raw
-    // Remove PDF kerning/spacing artifact codes like .5pt.4pt or .5pt
-    .replace(/\.?\d+(\.\d+)?pt\.?\d*(\.\d+)?pt\s*/gi, "")
-    // Remove standalone pt measurements like ".5pt"
-    .replace(/\.?\d+pt\s*/gi, "")
-    // Remove Europass/ECV artifacts like ecvlanglinkcolor
-    .replace(/ecv\w*/gi, "")
-    // Remove control characters (except tab, newline, carriage return)
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
-    // Remove soft hyphens
-    .replace(/\u00AD/g, "")
-    // Remove zero-width chars
-    .replace(/[\u200B-\u200F\uFEFF]/g, "")
-    // Collapse excessive whitespace within a line
-    .replace(/[ \t]{3,}/g, " ")
-    .trim();
+  return (
+    raw
+      // Remove PDF kerning/spacing artifact codes like .5pt.4pt or .5pt
+      .replace(/\.?\d+(\.\d+)?pt\.?\d*(\.\d+)?pt\s*/gi, "")
+      // Remove standalone pt measurements like ".5pt"
+      .replace(/\.?\d+pt\s*/gi, "")
+      // Remove Europass/ECV artifacts like ecvlanglinkcolor
+      .replace(/ecv\w*/gi, "")
+      // Remove control characters (except tab, newline, carriage return)
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+      // Remove soft hyphens
+      .replace(/\u00AD/g, "")
+      // Remove zero-width chars
+      .replace(/[\u200B-\u200F\uFEFF]/g, "")
+      // Collapse excessive whitespace within a line
+      .replace(/[ \t]{3,}/g, " ")
+      .trim()
+  );
 }
 
 // ---------- PDF.js loader ----------
@@ -129,7 +132,7 @@ export async function compressPdf(file: File, qualityInput = "5"): Promise<Proce
   // Map 1-10 → jpeg quality 0.15-0.95  and render scale 0.8-1.8
   const level = Math.min(10, Math.max(1, parseInt(qualityInput, 10) || 5));
   const jpegQuality = 0.15 + (level - 1) * 0.089; // 1→0.15, 10→0.95
-  const renderScale = 0.8 + (level - 1) * 0.11;   // 1→0.8, 10→1.79
+  const renderScale = 0.8 + (level - 1) * 0.11; // 1→0.8, 10→1.79
 
   const data = await file.arrayBuffer();
   const srcPdfJs = await pdfjs.getDocument({ data: data.slice(0) }).promise;
@@ -144,7 +147,7 @@ export async function compressPdf(file: File, qualityInput = "5"): Promise<Proce
     const ctx = canvas.getContext("2d")!;
     await pg.render({ canvasContext: ctx, canvas, viewport: vp }).promise;
     const jpegBlob: Blob = await new Promise((res) =>
-      canvas.toBlob((b) => res(b!), "image/jpeg", jpegQuality)
+      canvas.toBlob((b) => res(b!), "image/jpeg", jpegQuality),
     );
     const jpegBytes = new Uint8Array(await jpegBlob.arrayBuffer());
     const img = await outDoc.embedJpg(jpegBytes);
@@ -188,10 +191,14 @@ export async function rotatePdf(file: File, deg = 90): Promise<ProcessResult> {
 // ---------- Page range parser ----------
 function parsePageRange(input: string, total: number): number[] {
   const result = new Set<number>();
-  for (const part of input.split(",").map((p) => p.trim()).filter(Boolean)) {
+  for (const part of input
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean)) {
     if (part.includes("-")) {
       const [a, b] = part.split("-").map((n) => parseInt(n, 10));
-      if (!isNaN(a) && !isNaN(b)) for (let i = a; i <= b; i++) if (i >= 1 && i <= total) result.add(i);
+      if (!isNaN(a) && !isNaN(b))
+        for (let i = a; i <= b; i++) if (i >= 1 && i <= total) result.add(i);
     } else {
       const n = parseInt(part, 10);
       if (!isNaN(n) && n >= 1 && n <= total) result.add(n);
@@ -207,10 +214,16 @@ export async function extractPages(file: File, range: string): Promise<ProcessRe
   const pages = parsePageRange(range, src.getPageCount());
   if (!pages.length) throw new Error("No valid pages selected. Try e.g. 1-3,5");
   const out = await PDFDocument.create();
-  const copied = await out.copyPages(src, pages.map((p) => p - 1));
+  const copied = await out.copyPages(
+    src,
+    pages.map((p) => p - 1),
+  );
   copied.forEach((p) => out.addPage(p));
   const bytes = await out.save();
-  return { blob: new Blob([bytes as BlobPart], { type: "application/pdf" }), filename: stripExt(file.name) + "-extracted.pdf" };
+  return {
+    blob: new Blob([bytes as BlobPart], { type: "application/pdf" }),
+    filename: stripExt(file.name) + "-extracted.pdf",
+  };
 }
 
 // ---------- Delete Pages ----------
@@ -225,7 +238,10 @@ export async function deletePagesByRange(file: File, range: string): Promise<Pro
   const copied = await out.copyPages(src, keep);
   copied.forEach((p) => out.addPage(p));
   const bytes = await out.save();
-  return { blob: new Blob([bytes as BlobPart], { type: "application/pdf" }), filename: stripExt(file.name) + "-edited.pdf" };
+  return {
+    blob: new Blob([bytes as BlobPart], { type: "application/pdf" }),
+    filename: stripExt(file.name) + "-edited.pdf",
+  };
 }
 
 // ---------- Watermark ----------
@@ -237,7 +253,7 @@ export async function watermarkPdf(file: File, text: string): Promise<ProcessRes
     const { width, height } = page.getSize();
     const fontSize = Math.min(60, width / (text.length * 0.55));
     page.drawText(text, {
-      x: width / 2 - (text.length * fontSize * 0.28),
+      x: width / 2 - text.length * fontSize * 0.28,
       y: height / 2,
       size: fontSize,
       font,
@@ -247,7 +263,10 @@ export async function watermarkPdf(file: File, text: string): Promise<ProcessRes
     });
   }
   const out = await src.save();
-  return { blob: new Blob([out as BlobPart], { type: "application/pdf" }), filename: stripExt(file.name) + "-watermarked.pdf" };
+  return {
+    blob: new Blob([out as BlobPart], { type: "application/pdf" }),
+    filename: stripExt(file.name) + "-watermarked.pdf",
+  };
 }
 
 // ---------- Page Numbers ----------
@@ -267,7 +286,10 @@ export async function addPageNumbers(file: File): Promise<ProcessResult> {
     });
   });
   const out = await src.save();
-  return { blob: new Blob([out as BlobPart], { type: "application/pdf" }), filename: stripExt(file.name) + "-numbered.pdf" };
+  return {
+    blob: new Blob([out as BlobPart], { type: "application/pdf" }),
+    filename: stripExt(file.name) + "-numbered.pdf",
+  };
 }
 
 // ---------- Unlock (with optional password hint) ----------
@@ -283,9 +305,14 @@ export async function unlockPdf(file: File, password?: string): Promise<ProcessR
     const copied = await out.copyPages(src, src.getPageIndices());
     copied.forEach((p) => out.addPage(p));
     const bytes = await out.save();
-    return { blob: new Blob([bytes as BlobPart], { type: "application/pdf" }), filename: stripExt(file.name) + "-unlocked.pdf" };
+    return {
+      blob: new Blob([bytes as BlobPart], { type: "application/pdf" }),
+      filename: stripExt(file.name) + "-unlocked.pdf",
+    };
   } catch {
-    throw new Error("Could not unlock this PDF. The password may be incorrect, or this PDF uses strong encryption that requires a server-side tool.");
+    throw new Error(
+      "Could not unlock this PDF. The password may be incorrect, or this PDF uses strong encryption that requires a server-side tool.",
+    );
   }
 }
 
@@ -331,7 +358,10 @@ export async function cropPdf(file: File): Promise<ProcessResult> {
     page.setCropBox(marginX, marginY, width - marginX * 2, height - marginY * 2);
   }
   const out = await src.save();
-  return { blob: new Blob([out as BlobPart], { type: "application/pdf" }), filename: stripExt(file.name) + "-cropped.pdf" };
+  return {
+    blob: new Blob([out as BlobPart], { type: "application/pdf" }),
+    filename: stripExt(file.name) + "-cropped.pdf",
+  };
 }
 
 // ---------- PDF -> Images ----------
@@ -350,7 +380,10 @@ export async function pdfToImages(file: File): Promise<ProcessResult> {
 
 async function renderPage(pdf: unknown, pageNum: number): Promise<Blob> {
   const page = await (pdf as { getPage: (n: number) => Promise<unknown> }).getPage(pageNum);
-  const p = page as { getViewport: (o: { scale: number }) => { width: number; height: number }; render: (o: Record<string, unknown>) => { promise: Promise<void> } };
+  const p = page as {
+    getViewport: (o: { scale: number }) => { width: number; height: number };
+    render: (o: Record<string, unknown>) => { promise: Promise<void> };
+  };
   const viewport = p.getViewport({ scale: 2 });
   const canvas = document.createElement("canvas");
   canvas.width = viewport.width;
@@ -379,7 +412,9 @@ export async function pdfToText(file: File): Promise<ProcessResult> {
       if (!lineMap[y]) lineMap[y] = [];
       if (cleaned) lineMap[y].push(cleaned);
     }
-    const sortedYs = Object.keys(lineMap).map(Number).sort((a, b) => b - a);
+    const sortedYs = Object.keys(lineMap)
+      .map(Number)
+      .sort((a, b) => b - a);
     const pageText = sortedYs.map((y) => lineMap[y].join(" ")).join("\n");
     text += `--- Page ${i} ---\n${pageText}\n\n`;
   }
@@ -406,7 +441,7 @@ export async function pdfToWord(file: File): Promise<ProcessResult> {
     const ctx = canvas.getContext("2d")!;
     await page.render({ canvasContext: ctx, canvas, viewport }).promise;
     const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
-    
+
     // Set explicit width so Word doesn't stretch the high-res image outside the page
     htmlBody += `<div style="text-align:center;margin:0;padding:0"><img src="${dataUrl}" width="${Math.floor(viewportOriginal.width)}" style="display:block;" /></div>`;
     if (i < pdf.numPages) {
@@ -455,7 +490,10 @@ export async function ocrToPdf(files: File[]): Promise<ProcessResult> {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
     for (const line of lines) {
-      if (y > 280) { doc.addPage(); y = 20; }
+      if (y > 280) {
+        doc.addPage();
+        y = 20;
+      }
       doc.text(line, 20, y);
       y += 6;
     }
@@ -490,6 +528,68 @@ export async function imageToWord(files: File[]): Promise<ProcessResult> {
   };
 }
 
+// ---------- Word -> PDF (Robust Text-based Renderer) ----------
+export async function wordToPdf(file: File): Promise<ProcessResult> {
+  console.log("Starting Robust Word to PDF conversion:", file.name);
+  const mammoth = await import("mammoth");
+  const jsPDF = await loadJsPdf();
+
+  const arrayBuffer = await file.arrayBuffer();
+
+  // Convert to HTML first to get some structure
+  const { value: html } = await mammoth.convertToHtml({ arrayBuffer });
+
+  // Create jsPDF instance
+  const doc = new jsPDF("p", "pt", "a4");
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 40;
+  const contentWidth = pageWidth - margin * 2;
+
+  let y = margin;
+
+  // Simple HTML parser for basic tags
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = html;
+
+  const nodes = Array.from(tempDiv.childNodes);
+
+  for (const node of nodes) {
+    if (y > doc.internal.pageSize.getHeight() - margin) {
+      doc.addPage();
+      y = margin;
+    }
+
+    const tagName = (node as HTMLElement).tagName?.toLowerCase();
+    const text = node.textContent?.trim();
+    if (!text) continue;
+
+    if (tagName === "h1") {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      const lines = doc.splitTextToSize(text, contentWidth);
+      doc.text(lines, margin, y);
+      y += lines.length * 28;
+    } else if (tagName === "h2" || tagName === "h3") {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      const lines = doc.splitTextToSize(text, contentWidth);
+      doc.text(lines, margin, y);
+      y += lines.length * 20;
+    } else {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      const lines = doc.splitTextToSize(text, contentWidth);
+      doc.text(lines, margin, y);
+      y += lines.length * 14;
+    }
+    y += 10; // spacing between blocks
+  }
+
+  const blob = doc.output("blob");
+  const previewUrl = await generatePdfPreview(blob);
+  return { blob, filename: stripExt(file.name) + ".pdf", previewUrl };
+}
+
 // ---------- Text/HTML -> PDF ----------
 export async function textToPdf(file: File): Promise<ProcessResult> {
   const jsPDF = await loadJsPdf();
@@ -498,7 +598,10 @@ export async function textToPdf(file: File): Promise<ProcessResult> {
   const lines = doc.splitTextToSize(text, 180);
   let y = 20;
   for (const line of lines) {
-    if (y > 280) { doc.addPage(); y = 20; }
+    if (y > 280) {
+      doc.addPage();
+      y = 20;
+    }
     doc.text(line, 15, y);
     y += 7;
   }
@@ -513,45 +616,123 @@ export async function reorderPages(file: File): Promise<ProcessResult> {
   const { PDFDocument } = await loadPdfLib();
   const src = await PDFDocument.load(await file.arrayBuffer());
   const out = await src.save();
-  return { blob: new Blob([out as BlobPart], { type: "application/pdf" }), filename: stripExt(file.name) + "-reordered.pdf" };
+  return {
+    blob: new Blob([out as BlobPart], { type: "application/pdf" }),
+    filename: stripExt(file.name) + "-reordered.pdf",
+  };
 }
 
 // ---------- Devanagari -> Roman transliteration (for WhatsApp Hinglish) ----------
 function devanagariToRoman(text: string): string {
   const C: Record<string, string> = {
-    'क':'k','ख':'kh','ग':'g','घ':'gh','ङ':'ng',
-    'च':'ch','छ':'chh','ज':'j','झ':'jh','ञ':'ny',
-    'ट':'t','ठ':'th','ड':'d','ढ':'dh','ण':'n',
-    'त':'t','थ':'th','द':'d','ध':'dh','न':'n',
-    'प':'p','फ':'ph','ब':'b','भ':'bh','म':'m',
-    'य':'y','र':'r','ल':'l','व':'v','श':'sh',
-    'ष':'sh','स':'s','ह':'h',
-    'क़':'q','ख़':'kh','ग़':'gh','ज़':'z','ड़':'r','ढ़':'rh','फ़':'f',
+    क: "k",
+    ख: "kh",
+    ग: "g",
+    घ: "gh",
+    ङ: "ng",
+    च: "ch",
+    छ: "chh",
+    ज: "j",
+    झ: "jh",
+    ञ: "ny",
+    ट: "t",
+    ठ: "th",
+    ड: "d",
+    ढ: "dh",
+    ण: "n",
+    त: "t",
+    थ: "th",
+    द: "d",
+    ध: "dh",
+    न: "n",
+    प: "p",
+    फ: "ph",
+    ब: "b",
+    भ: "bh",
+    म: "m",
+    य: "y",
+    र: "r",
+    ल: "l",
+    व: "v",
+    श: "sh",
+    ष: "sh",
+    स: "s",
+    ह: "h",
+    क़: "q",
+    ख़: "kh",
+    ग़: "gh",
+    ज़: "z",
+    ड़: "r",
+    ढ़: "rh",
+    फ़: "f",
   };
   const V: Record<string, string> = {
-    'अ':'a','आ':'aa','इ':'i','ई':'ee','उ':'u','ऊ':'oo',
-    'ए':'e','ऐ':'ai','ओ':'o','औ':'au','ऋ':'ri',
+    अ: "a",
+    आ: "aa",
+    इ: "i",
+    ई: "ee",
+    उ: "u",
+    ऊ: "oo",
+    ए: "e",
+    ऐ: "ai",
+    ओ: "o",
+    औ: "au",
+    ऋ: "ri",
   };
   const M: Record<string, string> = {
-    'ा':'aa','ि':'i','ी':'ee','ु':'u','ू':'oo',
-    'े':'e','ै':'ai','ो':'o','ौ':'au','ृ':'ri',
-    'ं':'n','ः':'h','ँ':'n',
+    "ा": "aa",
+    "ि": "i",
+    "ी": "ee",
+    "ु": "u",
+    "ू": "oo",
+    "े": "e",
+    "ै": "ai",
+    "ो": "o",
+    "ौ": "au",
+    "ृ": "ri",
+    "ं": "n",
+    "ः": "h",
+    "ँ": "n",
   };
-  const virama = '\u094D';
-  const nums: Record<string,string> = {'०':'0','१':'1','२':'2','३':'3','४':'4','५':'5','६':'6','७':'7','८':'8','९':'9'};
+  const virama = "\u094D";
+  const nums: Record<string, string> = {
+    "०": "0",
+    "१": "1",
+    "२": "2",
+    "३": "3",
+    "४": "4",
+    "५": "5",
+    "६": "6",
+    "७": "7",
+    "८": "8",
+    "९": "9",
+  };
   const chars = [...text];
-  let r = '';
+  let r = "";
   for (let i = 0; i < chars.length; i++) {
-    const ch = chars[i], nx = chars[i+1];
+    const ch = chars[i],
+      nx = chars[i + 1];
     if (C[ch]) {
-      if (nx === virama) { r += C[ch]; i++; }
-      else if (nx && M[nx]) { r += C[ch] + M[nx]; i++; }
-      else { r += C[ch] + 'a'; }
-    } else if (V[ch]) { r += V[ch]; }
-    else if (M[ch]) { r += M[ch]; }
-    else if (nums[ch]) { r += nums[ch]; }
-    else if (ch === '।' || ch === '॥') { r += '.'; }
-    else { r += ch; }
+      if (nx === virama) {
+        r += C[ch];
+        i++;
+      } else if (nx && M[nx]) {
+        r += C[ch] + M[nx];
+        i++;
+      } else {
+        r += C[ch] + "a";
+      }
+    } else if (V[ch]) {
+      r += V[ch];
+    } else if (M[ch]) {
+      r += M[ch];
+    } else if (nums[ch]) {
+      r += nums[ch];
+    } else if (ch === "।" || ch === "॥") {
+      r += ".";
+    } else {
+      r += ch;
+    }
   }
   return r;
 }
@@ -567,7 +748,7 @@ async function googleTranslate(text: string, targetLang: string): Promise<string
   for (const chunk of chunks) {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${actualLang}&dt=t&q=${encodeURIComponent(chunk)}`;
     const res = await fetch(url);
-    const json = await res.json() as Array<Array<Array<string>>>;
+    const json = (await res.json()) as Array<Array<Array<string>>>;
     const translated = (json[0] ?? []).map((item) => item[0] ?? "").join("");
     out += isHinglish ? devanagariToRoman(translated) : translated;
   }
@@ -580,11 +761,43 @@ export async function aiSummarize(file: File, lang = "en"): Promise<ProcessResul
   const raw = (text ?? "").replace(/--- Page \d+ ---/g, "").trim();
   if (!raw) throw new Error("No text could be extracted from this PDF.");
 
-  const sentences = raw.match(/[^.!?\n]+[.!?\n]+/g) ?? raw.split("\n").filter((s) => s.trim().length > 20);
+  const sentences =
+    raw.match(/[^.!?\n]+[.!?\n]+/g) ?? raw.split("\n").filter((s) => s.trim().length > 20);
 
   // Extractive summarization via word frequency
   const wordFreq: Record<string, number> = {};
-  const stopWords = new Set(["the","a","an","is","in","of","and","to","for","on","at","with","by","from","that","this","it","was","are","be","as","or","but","not","we","he","she","they","i","you"]);
+  const stopWords = new Set([
+    "the",
+    "a",
+    "an",
+    "is",
+    "in",
+    "of",
+    "and",
+    "to",
+    "for",
+    "on",
+    "at",
+    "with",
+    "by",
+    "from",
+    "that",
+    "this",
+    "it",
+    "was",
+    "are",
+    "be",
+    "as",
+    "or",
+    "but",
+    "not",
+    "we",
+    "he",
+    "she",
+    "they",
+    "i",
+    "you",
+  ]);
   for (const s of sentences) {
     for (const w of s.toLowerCase().match(/\b[a-z]{3,}\b/g) ?? []) {
       if (!stopWords.has(w)) wordFreq[w] = (wordFreq[w] ?? 0) + 1;
@@ -592,7 +805,10 @@ export async function aiSummarize(file: File, lang = "en"): Promise<ProcessResul
   }
   const scored = sentences.map((s) => ({
     s: s.trim(),
-    score: (s.toLowerCase().match(/\b[a-z]{3,}\b/g) ?? []).reduce((acc, w) => acc + (wordFreq[w] ?? 0), 0),
+    score: (s.toLowerCase().match(/\b[a-z]{3,}\b/g) ?? []).reduce(
+      (acc, w) => acc + (wordFreq[w] ?? 0),
+      0,
+    ),
   }));
   const topN = Math.max(4, Math.ceil(sentences.length * 0.2));
   const summaryEn = scored
@@ -605,7 +821,14 @@ export async function aiSummarize(file: File, lang = "en"): Promise<ProcessResul
   let langLabel = "English";
   if (lang !== "en") {
     finalText = await googleTranslate(summaryEn, lang);
-    const langMap: Record<string, string> = { hi: "Hindi", wa: "WhatsApp (Hinglish)", fr: "French", es: "Spanish", de: "German", ar: "Arabic" };
+    const langMap: Record<string, string> = {
+      hi: "Hindi",
+      wa: "WhatsApp (Hinglish)",
+      fr: "French",
+      es: "Spanish",
+      de: "German",
+      ar: "Arabic",
+    };
     langLabel = langMap[lang] ?? lang.toUpperCase();
   }
 
@@ -625,7 +848,15 @@ export async function aiTranslate(file: File, targetLang = "hi"): Promise<Proces
   if (!raw) throw new Error("No text found in this PDF.");
 
   const translated = await googleTranslate(raw, targetLang);
-  const langMap: Record<string, string> = { hi: "Hindi", wa: "WhatsApp (Hinglish)", fr: "French", es: "Spanish", de: "German", ar: "Arabic", zh: "Chinese" };
+  const langMap: Record<string, string> = {
+    hi: "Hindi",
+    wa: "WhatsApp (Hinglish)",
+    fr: "French",
+    es: "Spanish",
+    de: "German",
+    ar: "Arabic",
+    zh: "Chinese",
+  };
   const langLabel = langMap[targetLang] ?? targetLang.toUpperCase();
 
   const output = `🌐 TRANSLATED TO: ${langLabel}\n${"-".repeat(60)}\n\n${translated}\n`;
@@ -644,87 +875,120 @@ export type ToolHandler = {
   promptLabel?: string;
   promptPlaceholder?: string;
   promptDefault?: string;
-  promptType?: "text" | "select";         // NEW: show dropdown instead of text
+  promptType?: "text" | "select"; // NEW: show dropdown instead of text
   promptOptions?: { value: string; label: string }[];
-  supportRetranslate?: boolean;            // NEW: AI tools show language re-picker in result
+  supportRetranslate?: boolean; // NEW: AI tools show language re-picker in result
   run: (files: File[], prompt?: string) => Promise<ProcessResult>;
 };
 
 const AI_LANG_OPTIONS = [
-  { value: "en",  label: "🇬🇧 English" },
-  { value: "hi",  label: "🇮🇳 Hindi (हिंदी)" },
-  { value: "wa",  label: "💬 WhatsApp (Hinglish)" },
-  { value: "fr",  label: "🇫🇷 French" },
-  { value: "es",  label: "🇪🇸 Spanish" },
-  { value: "de",  label: "🇩🇪 German" },
-  { value: "ar",  label: "🇸🇦 Arabic" },
+  { value: "en", label: "🇬🇧 English" },
+  { value: "hi", label: "🇮🇳 Hindi (हिंदी)" },
+  { value: "wa", label: "💬 WhatsApp (Hinglish)" },
+  { value: "fr", label: "🇫🇷 French" },
+  { value: "es", label: "🇪🇸 Spanish" },
+  { value: "de", label: "🇩🇪 German" },
+  { value: "ar", label: "🇸🇦 Arabic" },
 ];
 
 export const toolHandlers: Record<string, ToolHandler> = {
-  "merge-pdf":       { accept: "application/pdf", multiple: true, minFiles: 2, run: (f) => mergePdfs(f) },
-  "split-pdf":       { accept: "application/pdf", multiple: false, run: (f) => splitPdf(f[0]) },
-  "compress-pdf":    {
-    accept: "application/pdf", multiple: false,
+  "merge-pdf": { accept: "application/pdf", multiple: true, minFiles: 2, run: (f) => mergePdfs(f) },
+  "split-pdf": { accept: "application/pdf", multiple: false, run: (f) => splitPdf(f[0]) },
+  "compress-pdf": {
+    accept: "application/pdf",
+    multiple: false,
     promptLabel: "Quality level (1 = max compression, 10 = best quality)",
     promptPlaceholder: "1–10",
     promptDefault: "5",
     run: (f, p) => compressPdf(f[0], p ?? "5"),
   },
-  "image-to-pdf":    { accept: "image/png,image/jpeg,image/webp", multiple: true, run: (f) => imagesToPdf(f) },
-  "rotate-pdf":      { accept: "application/pdf", multiple: false, run: (f) => rotatePdf(f[0], 90) },
-  "extract-pages":   {
-    accept: "application/pdf", multiple: false,
+  "image-to-pdf": {
+    accept: "image/png,image/jpeg,image/webp",
+    multiple: true,
+    run: (f) => imagesToPdf(f),
+  },
+  "rotate-pdf": { accept: "application/pdf", multiple: false, run: (f) => rotatePdf(f[0], 90) },
+  "extract-pages": {
+    accept: "application/pdf",
+    multiple: false,
     promptLabel: "Pages to extract (e.g. 1-3,5)",
-    promptPlaceholder: "1-3,5", promptDefault: "1",
+    promptPlaceholder: "1-3,5",
+    promptDefault: "1",
     run: (f, p) => extractPages(f[0], p ?? "1"),
   },
-  "delete-pages":    {
-    accept: "application/pdf", multiple: false,
+  "delete-pages": {
+    accept: "application/pdf",
+    multiple: false,
     promptLabel: "Pages to delete (e.g. 2,4-6)",
-    promptPlaceholder: "2,4-6", promptDefault: "1",
+    promptPlaceholder: "2,4-6",
+    promptDefault: "1",
     run: (f, p) => deletePagesByRange(f[0], p ?? "1"),
   },
-  "watermark-pdf":   {
-    accept: "application/pdf", multiple: false,
+  "watermark-pdf": {
+    accept: "application/pdf",
+    multiple: false,
     promptLabel: "Watermark text",
-    promptPlaceholder: "CONFIDENTIAL", promptDefault: "CONFIDENTIAL",
+    promptPlaceholder: "CONFIDENTIAL",
+    promptDefault: "CONFIDENTIAL",
     run: (f, p) => watermarkPdf(f[0], p ?? "CONFIDENTIAL"),
   },
-  "page-numbers":    { accept: "application/pdf", multiple: false, run: (f) => addPageNumbers(f[0]) },
-  "unlock-pdf":      {
-    accept: "application/pdf", multiple: false,
+  "page-numbers": { accept: "application/pdf", multiple: false, run: (f) => addPageNumbers(f[0]) },
+  "unlock-pdf": {
+    accept: "application/pdf",
+    multiple: false,
     promptLabel: "Password (if known — helps unlock some PDFs)",
-    promptPlaceholder: "Enter password or leave blank", promptDefault: "",
+    promptPlaceholder: "Enter password or leave blank",
+    promptDefault: "",
     run: (f, p) => unlockPdf(f[0], p),
   },
-  "protect-pdf":     {
-    accept: "application/pdf", multiple: false,
+  "protect-pdf": {
+    accept: "application/pdf",
+    multiple: false,
     promptLabel: "Your password (adds protection stamp — full encryption needs server)",
-    promptPlaceholder: "Enter your password", promptDefault: "",
+    promptPlaceholder: "Enter your password",
+    promptDefault: "",
     run: (f, p) => protectPdf(f[0], p ?? ""),
   },
-  "pdf-to-image":    { accept: "application/pdf", multiple: false, run: (f) => pdfToImages(f[0]) },
-  "pdf-to-word":     { accept: "application/pdf", multiple: false, run: (f) => pdfToWord(f[0]) },
-  "pdf-to-excel":    { accept: "application/pdf", multiple: false, run: (f) => pdfToExcel(f[0]) },
-  "pdf-to-ppt":      { accept: "application/pdf", multiple: false, run: (f) => pdfToImages(f[0]) },
-  "image-to-word":   { accept: "image/png,image/jpeg", multiple: true, run: (f) => imageToWord(f) },
+  "pdf-to-image": { accept: "application/pdf", multiple: false, run: (f) => pdfToImages(f[0]) },
+  "pdf-to-word": { accept: "application/pdf", multiple: false, run: (f) => pdfToWord(f[0]) },
+  "pdf-to-excel": { accept: "application/pdf", multiple: false, run: (f) => pdfToExcel(f[0]) },
+  "pdf-to-ppt": { accept: "application/pdf", multiple: false, run: (f) => pdfToImages(f[0]) },
+  "image-to-word": { accept: "image/png,image/jpeg", multiple: true, run: (f) => imageToWord(f) },
   "handwriting-ocr": { accept: "image/png,image/jpeg", multiple: true, run: (f) => ocrToPdf(f) },
-  "word-to-pdf":     { accept: ".txt,.html,text/plain,text/html", multiple: false, run: (f) => textToPdf(f[0]) },
-  "html-to-pdf":     { accept: ".html,text/html", multiple: false, run: (f) => textToPdf(f[0]) },
-  "excel-to-pdf":    { accept: ".csv,.txt", multiple: false, run: (f) => textToPdf(f[0]) },
-  "ppt-to-pdf":      { accept: "image/png,image/jpeg", multiple: true, run: (f) => imagesToPdf(f) },
-  "crop-pdf":        { accept: "application/pdf", multiple: false, run: (f) => cropPdf(f[0]) },
-  "reorder-pages":   { accept: "application/pdf", multiple: false, run: (f) => reorderPages(f[0]) },
-  "edit-pdf":        { accept: "application/pdf", multiple: false, run: (f) => addPageNumbers(f[0]) },
-  "sign-pdf":        {
-    accept: "application/pdf", multiple: false,
+  "word-to-pdf": {
+    accept:
+      ".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    multiple: false,
+    run: (f) => wordToPdf(f[0]),
+  },
+  "html-to-pdf": { accept: ".html,text/html", multiple: false, run: (f) => textToPdf(f[0]) },
+  "excel-to-pdf": {
+    accept:
+      ".xls,.xlsx,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv",
+    multiple: false,
+    run: (f) => textToPdf(f[0]),
+  },
+  "ppt-to-pdf": {
+    accept:
+      ".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    multiple: true,
+    run: (f) => imagesToPdf(f),
+  },
+  "crop-pdf": { accept: "application/pdf", multiple: false, run: (f) => cropPdf(f[0]) },
+  "reorder-pages": { accept: "application/pdf", multiple: false, run: (f) => reorderPages(f[0]) },
+  "edit-pdf": { accept: "application/pdf", multiple: false, run: (f) => addPageNumbers(f[0]) },
+  "sign-pdf": {
+    accept: "application/pdf",
+    multiple: false,
     promptLabel: "Your name for signature stamp",
-    promptPlaceholder: "Your Name", promptDefault: "SIGNED",
+    promptPlaceholder: "Your Name",
+    promptDefault: "SIGNED",
     run: (f, p) => watermarkPdf(f[0], p ?? "SIGNED"),
   },
-  "scan-document":   { accept: "image/png,image/jpeg", multiple: true, run: (f) => imagesToPdf(f) },
-  "ai-summarize":    {
-    accept: "application/pdf", multiple: false,
+  "scan-document": { accept: "image/png,image/jpeg", multiple: true, run: (f) => imagesToPdf(f) },
+  "ai-summarize": {
+    accept: "application/pdf",
+    multiple: false,
     promptType: "select",
     promptLabel: "Summary language",
     promptDefault: "en",
@@ -732,8 +996,9 @@ export const toolHandlers: Record<string, ToolHandler> = {
     supportRetranslate: true,
     run: (f, p) => aiSummarize(f[0], p ?? "en"),
   },
-  "ai-chat":         {
-    accept: "application/pdf", multiple: false,
+  "ai-chat": {
+    accept: "application/pdf",
+    multiple: false,
     promptType: "select",
     promptLabel: "Summary language",
     promptDefault: "en",
@@ -741,8 +1006,9 @@ export const toolHandlers: Record<string, ToolHandler> = {
     supportRetranslate: true,
     run: (f, p) => aiSummarize(f[0], p ?? "en"),
   },
-  "ai-translate":    {
-    accept: "application/pdf", multiple: false,
+  "ai-translate": {
+    accept: "application/pdf",
+    multiple: false,
     promptType: "select",
     promptLabel: "Translate to",
     promptDefault: "hi",

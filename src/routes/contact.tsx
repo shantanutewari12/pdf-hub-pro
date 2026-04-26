@@ -32,12 +32,17 @@ function ContactPage() {
     e.preventDefault();
     setSending(true);
     try {
-      await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
-        from_name: form.name,
-        from_email: form.email,
-        message: form.message,
-        to_email: CONTACT_EMAIL,
-      }, EMAILJS_KEY);
+      await emailjs.send(
+        EMAILJS_SERVICE,
+        EMAILJS_TEMPLATE,
+        {
+          from_name: form.name,
+          from_email: form.email,
+          message: form.message,
+          to_email: CONTACT_EMAIL,
+        },
+        EMAILJS_KEY,
+      );
       setSent(true);
       setForm({ name: "", email: "", message: "" });
     } catch (err) {
@@ -95,22 +100,48 @@ function ContactPage() {
                 className="rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-soft space-y-4"
               >
                 <Field label="Your name">
-                  <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full h-11 rounded-xl border border-border bg-background px-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  <input
+                    required
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    className="w-full h-11 rounded-xl border border-border bg-background px-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
                 </Field>
                 <Field label="Email">
-                  <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="w-full h-11 rounded-xl border border-border bg-background px-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  <input
+                    required
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    className="w-full h-11 rounded-xl border border-border bg-background px-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
                 </Field>
                 <Field label="Message">
-                  <textarea required rows={5} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })}
-                    className="w-full rounded-xl border border-border bg-background p-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" />
+                  <textarea
+                    required
+                    rows={5}
+                    value={form.message}
+                    onChange={(e) => setForm({ ...form, message: e.target.value })}
+                    className="w-full rounded-xl border border-border bg-background p-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                  />
                 </Field>
-                <Button type="submit" size="lg" disabled={sending} className="w-full bg-gradient-emerald text-primary-foreground hover:opacity-90 group">
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={sending}
+                  className="w-full bg-gradient-emerald text-primary-foreground hover:opacity-90 group"
+                >
                   {sending ? (
-                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                      className="h-5 w-5 border-2 border-white border-t-transparent rounded-full"
+                    />
                   ) : (
-                    <>Send message <Send className="h-4 w-4 ml-1.5 group-hover:translate-x-1 transition-transform" /></>
+                    <>
+                      Send message{" "}
+                      <Send className="h-4 w-4 ml-1.5 group-hover:translate-x-1 transition-transform" />
+                    </>
                   )}
                 </Button>
               </motion.form>
@@ -133,7 +164,7 @@ function SuccessAnimation({ onReset }: { onReset: () => void }) {
       duration: 1.5 + Math.random() * 1.5,
       color: ["#10b981", "#f59e0b", "#3b82f6", "#ef4444", "#8b5cf6", "#ec4899"][i % 6],
       size: 4 + Math.random() * 6,
-    }))
+    })),
   );
 
   return (
@@ -178,7 +209,11 @@ function SuccessAnimation({ onReset }: { onReset: () => void }) {
         </motion.div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
         <div className="flex items-center justify-center gap-1.5 mb-2">
           <Sparkles className="h-5 w-5 text-gold" />
           <h3 className="font-display text-2xl font-bold">Message Sent!</h3>
@@ -190,10 +225,7 @@ function SuccessAnimation({ onReset }: { onReset: () => void }) {
       </motion.div>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}>
-        <button
-          onClick={onReset}
-          className="mt-6 text-sm font-medium text-primary hover:underline"
-        >
+        <button onClick={onReset} className="mt-6 text-sm font-medium text-primary hover:underline">
           Send another message →
         </button>
       </motion.div>

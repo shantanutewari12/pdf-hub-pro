@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useRouter, useRouterState } from "@tanstack/react-router";
 import { ArrowLeft, Sparkles, Loader2, UploadCloud } from "lucide-react";
 import { motion } from "framer-motion";
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
@@ -7,10 +7,18 @@ import { Footer } from "@/components/footer";
 import { ToolCard } from "@/components/tool-card";
 import { getTool, tools } from "@/lib/tools";
 
-const UploadDropzone = lazy(() => import("@/components/upload-dropzone").then((m) => ({ default: m.UploadDropzone })));
-const PdfEditor = lazy(() => import("@/components/pdf-editor").then((m) => ({ default: m.PdfEditor })));
-const RotateEditor = lazy(() => import("@/components/rotate-editor").then((m) => ({ default: m.RotateEditor })));
-const CropEditor = lazy(() => import("@/components/crop-editor").then((m) => ({ default: m.CropEditor })));
+const UploadDropzone = lazy(() =>
+  import("@/components/upload-dropzone").then((m) => ({ default: m.UploadDropzone })),
+);
+const PdfEditor = lazy(() =>
+  import("@/components/pdf-editor").then((m) => ({ default: m.PdfEditor })),
+);
+const RotateEditor = lazy(() =>
+  import("@/components/rotate-editor").then((m) => ({ default: m.RotateEditor })),
+);
+const CropEditor = lazy(() =>
+  import("@/components/crop-editor").then((m) => ({ default: m.CropEditor })),
+);
 
 const VISUAL_EDITORS = new Set(["edit-pdf", "crop-pdf", "rotate-pdf"]);
 
@@ -18,7 +26,15 @@ export const Route = createFileRoute("/tools/$slug")({
   loader: ({ params }) => {
     const tool = getTool(params.slug);
     if (!tool) throw notFound();
-    return { tool: { slug: tool.slug, name: tool.name, description: tool.description, category: tool.category, pro: tool.pro ?? false } };
+    return {
+      tool: {
+        slug: tool.slug,
+        name: tool.name,
+        description: tool.description,
+        category: tool.category,
+        pro: tool.pro ?? false,
+      },
+    };
   },
   head: ({ loaderData }) => ({
     meta: loaderData
@@ -36,7 +52,9 @@ export const Route = createFileRoute("/tools/$slug")({
       <main className="flex-1 flex items-center justify-center p-8 text-center">
         <div>
           <h1 className="font-display text-3xl font-bold">Tool not found</h1>
-          <Link to="/tools" className="mt-4 inline-block text-primary underline">Back to tools</Link>
+          <Link to="/tools" className="mt-4 inline-block text-primary underline">
+            Back to tools
+          </Link>
         </div>
       </main>
       <Footer />
@@ -52,8 +70,21 @@ export const Route = createFileRoute("/tools/$slug")({
             <h1 className="font-display text-3xl font-bold">Unable to open tool</h1>
             <p className="mt-3 text-muted-foreground">{error.message || "Something went wrong."}</p>
             <div className="mt-6 flex items-center justify-center gap-3">
-              <button onClick={() => { router.invalidate(); reset(); }} className="inline-flex items-center justify-center rounded-xl bg-gradient-emerald px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-90 transition">Try again</button>
-              <Link to="/tools" className="inline-flex items-center justify-center rounded-xl border border-border px-5 py-2.5 text-sm font-semibold text-foreground transition hover:bg-card">Back to tools</Link>
+              <button
+                onClick={() => {
+                  router.invalidate();
+                  reset();
+                }}
+                className="inline-flex items-center justify-center rounded-xl bg-gradient-emerald px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-90 transition"
+              >
+                Try again
+              </button>
+              <Link
+                to="/tools"
+                className="inline-flex items-center justify-center rounded-xl border border-border px-5 py-2.5 text-sm font-semibold text-foreground transition hover:bg-card"
+              >
+                Back to tools
+              </Link>
             </div>
           </div>
         </main>
@@ -66,10 +97,15 @@ export const Route = createFileRoute("/tools/$slug")({
 
 function ToolPage() {
   const { tool } = Route.useLoaderData();
+  const location = useRouterState().location;
+  const initialFiles = (location.state as any)?.initialFiles as File[] | undefined;
+
   const fullTool = getTool(tool.slug);
   if (!fullTool) throw notFound();
   const Icon = fullTool.icon;
-  const related = tools.filter((t) => t.category === fullTool.category && t.slug !== fullTool.slug).slice(0, 3);
+  const related = tools
+    .filter((t) => t.category === fullTool.category && t.slug !== fullTool.slug)
+    .slice(0, 3);
   const isVisual = VISUAL_EDITORS.has(tool.slug);
 
   return (
@@ -78,11 +114,18 @@ function ToolPage() {
       <main className="flex-1">
         <section className="py-10 sm:py-14">
           <div className={`mx-auto px-4 sm:px-6 lg:px-8 ${isVisual ? "max-w-6xl" : "max-w-4xl"}`}>
-            <Link to="/tools" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6">
+            <Link
+              to="/tools"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
+            >
               <ArrowLeft className="h-4 w-4" /> All tools
             </Link>
 
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8 sm:mb-10">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center mb-8 sm:mb-10"
+            >
               <div className="inline-flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-emerald shadow-elevated mb-4 sm:mb-5">
                 <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-primary-foreground" strokeWidth={2} />
               </div>
@@ -94,15 +137,21 @@ function ToolPage() {
                   </span>
                 )}
               </h1>
-              <p className="mt-3 sm:mt-4 text-sm sm:text-lg text-muted-foreground max-w-xl mx-auto px-2">{tool.description}</p>
+              <p className="mt-3 sm:mt-4 text-sm sm:text-lg text-muted-foreground max-w-xl mx-auto px-2">
+                {tool.description}
+              </p>
             </motion.div>
 
             <ClientOnly>
               <Suspense fallback={<DropzoneFallback />}>
                 {isVisual ? (
-                  <VisualEditorFlow slug={tool.slug} />
+                  <VisualEditorFlow slug={tool.slug} initialFile={initialFiles?.[0]} />
                 ) : (
-                  <UploadDropzone toolName={tool.name.toLowerCase()} toolSlug={tool.slug} />
+                  <UploadDropzone
+                    toolName={tool.name.toLowerCase()}
+                    toolSlug={tool.slug}
+                    initialFiles={initialFiles}
+                  />
                 )}
               </Suspense>
             </ClientOnly>
@@ -114,7 +163,9 @@ function ToolPage() {
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <h2 className="font-display text-2xl font-bold mb-6">Related tools</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {related.map((t, i) => <ToolCard key={t.slug} tool={t} index={i} />)}
+                {related.map((t, i) => (
+                  <ToolCard key={t.slug} tool={t} index={i} />
+                ))}
               </div>
             </div>
           </section>
@@ -126,8 +177,8 @@ function ToolPage() {
 }
 
 // Generic file picker → launches the right visual editor
-function VisualEditorFlow({ slug }: { slug: string }) {
-  const [file, setFile] = useState<File | null>(null);
+function VisualEditorFlow({ slug, initialFile }: { slug: string; initialFile?: File }) {
+  const [file, setFile] = useState<File | null>(initialFile ?? null);
   const [drag, setDrag] = useState(false);
 
   const handleFile = useCallback((f: File) => {
@@ -135,7 +186,8 @@ function VisualEditorFlow({ slug }: { slug: string }) {
   }, []);
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault(); setDrag(false);
+    e.preventDefault();
+    setDrag(false);
     const f = e.dataTransfer.files[0];
     if (f) handleFile(f);
   };
@@ -150,10 +202,19 @@ function VisualEditorFlow({ slug }: { slug: string }) {
       <div className="space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium truncate max-w-[200px] sm:max-w-none">{labels[slug] || "Processing"}: {file.name}</span>
-            <span className="text-muted-foreground">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+            <span className="font-medium truncate max-w-[200px] sm:max-w-none">
+              {labels[slug] || "Processing"}: {file.name}
+            </span>
+            <span className="text-muted-foreground">
+              ({(file.size / 1024 / 1024).toFixed(2)} MB)
+            </span>
           </div>
-          <button onClick={() => setFile(null)} className="text-xs text-muted-foreground hover:text-foreground underline">Change file</button>
+          <button
+            onClick={() => setFile(null)}
+            className="text-xs text-muted-foreground hover:text-foreground underline"
+          >
+            Change file
+          </button>
         </div>
         <Suspense fallback={<DropzoneFallback />}>
           {slug === "edit-pdf" && <PdfEditor file={file} />}
@@ -172,24 +233,42 @@ function VisualEditorFlow({ slug }: { slug: string }) {
 
   return (
     <motion.div
-      onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDrag(true);
+      }}
       onDragLeave={() => setDrag(false)}
       onDrop={handleDrop}
       animate={{ scale: drag ? 1.01 : 1 }}
       className={`relative overflow-hidden rounded-3xl border-2 border-dashed p-6 sm:p-10 md:p-14 text-center transition-all ${
-        drag ? "border-primary bg-primary/5" : "border-border bg-card/60 hover:border-primary/40 hover:bg-card"
+        drag
+          ? "border-primary bg-primary/5"
+          : "border-border bg-card/60 hover:border-primary/40 hover:bg-card"
       }`}
     >
       <div className="flex flex-col items-center gap-3 sm:gap-4">
-        <motion.div animate={{ y: drag ? -6 : 0 }} className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-emerald shadow-elevated">
+        <motion.div
+          animate={{ y: drag ? -6 : 0 }}
+          className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-emerald shadow-elevated"
+        >
           <UploadCloud className="h-7 w-7 sm:h-8 sm:w-8 text-primary-foreground" strokeWidth={2} />
         </motion.div>
         <div>
           <h3 className="font-display text-lg sm:text-xl font-semibold">Drop your PDF here</h3>
-          <p className="mt-1 text-xs sm:text-sm text-muted-foreground">{descriptions[slug] || "Upload to get started"}</p>
+          <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+            {descriptions[slug] || "Upload to get started"}
+          </p>
         </div>
         <label>
-          <input type="file" className="hidden" accept="application/pdf" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+          <input
+            type="file"
+            className="hidden"
+            accept="application/pdf"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleFile(f);
+            }}
+          />
           <span className="inline-flex h-10 sm:h-11 cursor-pointer items-center justify-center rounded-xl bg-gradient-emerald px-5 sm:px-6 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-90 transition">
             Select PDF
           </span>

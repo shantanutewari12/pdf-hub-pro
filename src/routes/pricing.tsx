@@ -10,7 +10,10 @@ export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
       { title: "Pricing — PDF Master" },
-      { name: "description", content: "Simple, transparent pricing in INR. Free forever or unlock everything with Pro." },
+      {
+        name: "description",
+        content: "Simple, transparent pricing in INR. Free forever or unlock everything with Pro.",
+      },
     ],
   }),
   component: PricingPage,
@@ -98,7 +101,9 @@ function PricingPage() {
               </div>
               <div>
                 <p className="text-sm font-semibold">AI-Powered Tools Included in Pro</p>
-                <p className="text-xs text-muted-foreground">Summarize, translate, chat with any PDF using AI</p>
+                <p className="text-xs text-muted-foreground">
+                  Summarize, translate, chat with any PDF using AI
+                </p>
               </div>
             </motion.div>
 
@@ -122,22 +127,35 @@ function PricingPage() {
                     </div>
                   )}
                   <h3 className="font-display text-2xl font-bold">{p.name}</h3>
-                  <p className={`mt-1 text-sm ${p.featured ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{p.desc}</p>
+                  <p
+                    className={`mt-1 text-sm ${p.featured ? "text-primary-foreground/80" : "text-muted-foreground"}`}
+                  >
+                    {p.desc}
+                  </p>
                   <div className="mt-6 flex items-baseline gap-1">
                     <span className="font-display text-4xl sm:text-5xl font-bold">{p.price}</span>
-                    <span className={`text-sm ${p.featured ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{p.period}</span>
+                    <span
+                      className={`text-sm ${p.featured ? "text-primary-foreground/70" : "text-muted-foreground"}`}
+                    >
+                      {p.period}
+                    </span>
                   </div>
                   <ul className="mt-6 space-y-3 flex-1">
                     {p.features.map((f) => (
                       <li key={f} className="flex items-start gap-2.5 text-sm">
-                        <Check className={`h-4 w-4 mt-0.5 shrink-0 ${p.featured ? "text-accent" : "text-primary"}`} />
+                        <Check
+                          className={`h-4 w-4 mt-0.5 shrink-0 ${p.featured ? "text-accent" : "text-primary"}`}
+                        />
                         <span>{f}</span>
                       </li>
                     ))}
                   </ul>
                   {p.name === "Free" ? (
                     <Link to={p.href} className="mt-8 block w-full">
-                      <Button className="w-full bg-gradient-emerald text-primary-foreground hover:opacity-90" size="lg">
+                      <Button
+                        className="w-full bg-gradient-emerald text-primary-foreground hover:opacity-90"
+                        size="lg"
+                      >
                         {p.cta}
                       </Button>
                     </Link>
@@ -181,7 +199,7 @@ function FreeAnimationModal({ onClose }: { onClose: () => void }) {
       duration: 1.5 + Math.random() * 2,
       color: ["#10b981", "#f59e0b", "#3b82f6", "#ef4444", "#8b5cf6", "#ec4899"][i % 6],
       size: 4 + Math.random() * 8,
-    }))
+    })),
   );
 
   return (
@@ -211,19 +229,40 @@ function FreeAnimationModal({ onClose }: { onClose: () => void }) {
           />
         ))}
 
-        <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted text-muted-foreground transition z-30">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted text-muted-foreground transition z-30"
+        >
           <X className="h-5 w-5" />
         </button>
 
         <div className="relative mx-auto w-24 h-24 mb-6 z-20">
-          <motion.div className="absolute inset-0 rounded-full bg-primary/20" animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }} transition={{ repeat: Infinity, duration: 2 }} />
-          <motion.div className="absolute inset-0 rounded-full bg-primary/10" animate={{ scale: [1, 2, 1], opacity: [0.3, 0, 0.3] }} transition={{ repeat: Infinity, duration: 2, delay: 0.3 }} />
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", delay: 0.2, stiffness: 200 }} className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-gold shadow-gold">
+          <motion.div
+            className="absolute inset-0 rounded-full bg-primary/20"
+            animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+          />
+          <motion.div
+            className="absolute inset-0 rounded-full bg-primary/10"
+            animate={{ scale: [1, 2, 1], opacity: [0.3, 0, 0.3] }}
+            transition={{ repeat: Infinity, duration: 2, delay: 0.3 }}
+          />
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", delay: 0.2, stiffness: 200 }}
+            className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-gold shadow-gold"
+          >
             <PartyPopper className="h-12 w-12 text-emerald-deep" strokeWidth={2} />
           </motion.div>
         </div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="z-20 relative">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="z-20 relative"
+        >
           <h3 className="font-display text-3xl sm:text-4xl font-bold text-gradient-emerald mb-4 uppercase tracking-wide">
             Chill!
           </h3>
@@ -231,12 +270,22 @@ function FreeAnimationModal({ onClose }: { onClose: () => void }) {
             Abhi ke lie sab <span className="font-bold text-primary px-1">FREE</span> hain!
           </p>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            Abhi chlaao bindaass free. No credit card, no subscription needed right now. Enjoy all pro features on the house! 🎉
+            Abhi chlaao bindaass free. No credit card, no subscription needed right now. Enjoy all
+            pro features on the house! 🎉
           </p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mt-8 z-20 relative">
-          <Button onClick={onClose} size="lg" className="w-full bg-gradient-emerald text-primary-foreground hover:opacity-90 shadow-soft">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="mt-8 z-20 relative"
+        >
+          <Button
+            onClick={onClose}
+            size="lg"
+            className="w-full bg-gradient-emerald text-primary-foreground hover:opacity-90 shadow-soft"
+          >
             Awesome, thanks!
           </Button>
         </motion.div>
