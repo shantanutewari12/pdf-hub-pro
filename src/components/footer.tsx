@@ -1,11 +1,44 @@
 import { Link } from "@tanstack/react-router";
-import { FileText, Mail, Heart, Shield, Zap, Globe, ArrowUpRight } from "lucide-react";
+import { FileText, Mail, Heart, Shield, Zap, Globe, ArrowUpRight, Download } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { useState, useEffect } from "react";
+import { Button } from "./ui/button";
 
 const EMAIL = "shantanitiwari12@gmail.com";
 
 export function Footer() {
   const { user, signOut } = useAuth();
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+
+  useEffect(() => {
+    // iOS Detection
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    setIsIOS(/iphone|ipad|ipod/.test(userAgent));
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBtn(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (isIOS) {
+      alert("To install: Tap the 'Share' button at the bottom and then 'Add to Home Screen' 📱");
+      return;
+    }
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") setShowInstallBtn(false);
+    setDeferredPrompt(null);
+  };
+
   return (
     <footer className="relative overflow-hidden border-t border-border/60 bg-emerald-deep text-cream mt-12 sm:mt-24">
       {/* Decorative gradient orbs */}
@@ -31,6 +64,19 @@ export function Footer() {
             <p className="mt-4 text-sm text-cream/70 max-w-xs leading-relaxed">
               The premium document toolkit trusted by thousands. Fast, secure, and beautifully crafted.
             </p>
+
+            {(showInstallBtn || isIOS || import.meta.env.DEV) && (
+              <div className="mt-6 md:hidden">
+                <Button 
+                  variant="outline" 
+                  onClick={handleInstallClick}
+                  className="bg-white/5 border-white/10 hover:bg-white/10 text-white gap-2 rounded-xl"
+                >
+                  <Download className="h-4 w-4" />
+                  Install App {isIOS ? "(iOS)" : ""}
+                </Button>
+              </div>
+            )}
 
             {/* Feature badges */}
             <div className="mt-5 space-y-2.5">

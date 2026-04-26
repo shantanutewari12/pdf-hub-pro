@@ -301,9 +301,9 @@ function HowItWorks() {
 
 function Testimonials() {
   const items = [
-    { q: "Replaced three different tools we were paying for. The interface is just chef's kiss.", a: "Sarah K.", r: "Operations Lead" },
-    { q: "AI summarize alone is worth the subscription. We process 200+ contracts a week.", a: "Marcus T.", r: "Legal Counsel" },
-    { q: "Beautifully designed, blazingly fast. Feels like the Linear of PDF tools.", a: "Priya N.", r: "Product Designer" },
+    { q: "I used PDF Master for all my company's paperwork. The interface is incredibly smooth and intuitive.", a: "Anjali Sharma", r: "Operations Lead, Mumbai" },
+    { q: "The AI summary feature is truly amazing. I no longer need to read through 50-page legal files.", a: "Rohan Mehta", r: "Legal Consultant, Delhi" },
+    { q: "The design is premium and the processing speed is blazingly fast. It's the best tool for Indian businesses.", a: "Priyanka Gupta", r: "Product Manager, Bangalore" },
   ];
   return (
     <section className="py-20 bg-card/40 border-y border-border/60">

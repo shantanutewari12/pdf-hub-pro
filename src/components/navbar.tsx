@@ -20,10 +20,18 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBtn, setShowInstallBtn] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handler, { passive: true });
+
+    // iOS Detection
+    const checkIOS = () => {
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      return /iphone|ipad|ipod/.test(userAgent);
+    };
+    setIsIOS(checkIOS());
 
     // PWA Install Logic
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -50,7 +58,16 @@ export function Navbar() {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    if (isIOS) {
+      alert("To install: Tap the 'Share' button at the bottom and then 'Add to Home Screen' 📱");
+      return;
+    }
+    if (!deferredPrompt) {
+      if (import.meta.env.DEV) {
+        alert("PWA Install prompt only works in production or when the browser detects installability. In Dev Mode, this is just a preview of the button! 🚀");
+      }
+      return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === "accepted") {
@@ -101,19 +118,8 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <div className="hidden md:flex items-center gap-3 pr-3 border-r border-border/40">
-            {showInstallBtn && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleInstallClick}
-                className="hidden md:flex items-center gap-2 border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-all rounded-xl"
-              >
-                <Download className="h-4 w-4" />
-                Install App
-              </Button>
-            )}
             <ThemeToggle />
           </div>
 
@@ -137,10 +143,19 @@ export function Navbar() {
             )}
           </div>
 
-          <div className="flex items-center gap-2 md:hidden">
+          <div className="flex items-center gap-1.5 md:hidden">
+             {(showInstallBtn || isIOS || import.meta.env.DEV) && (
+               <button
+                onClick={handleInstallClick}
+                className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+              >
+                <Download className="h-4 w-4" />
+                Install
+              </button>
+             )}
              <ThemeToggle />
              <button
-              className="rounded-xl p-2.5 bg-foreground/5 hover:bg-foreground/10 transition-all"
+              className="rounded-xl p-2 bg-foreground/5 hover:bg-foreground/10 transition-all"
               onClick={() => setOpen((o) => !o)}
               aria-label="Toggle menu"
             >
@@ -170,7 +185,7 @@ export function Navbar() {
                 </Link>
               ))}
               
-              {showInstallBtn && (
+              {(showInstallBtn || isIOS || import.meta.env.DEV) && (
                 <button
                   onClick={handleInstallClick}
                   className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-base font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
