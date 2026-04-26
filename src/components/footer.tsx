@@ -11,11 +11,13 @@ export function Footer() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBtn, setShowInstallBtn] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
 
   useEffect(() => {
-    // iOS Detection
+    // Platform Detection
     const userAgent = window.navigator.userAgent.toLowerCase();
     setIsIOS(/iphone|ipad|ipod/.test(userAgent));
+    setIsAndroid(/android/.test(userAgent));
 
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -32,7 +34,14 @@ export function Footer() {
       alert("To install: Tap the 'Share' button at the bottom and then 'Add to Home Screen' 📱");
       return;
     }
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      if (isAndroid) {
+        alert("To install on Android: Tap the 3 dots (⋮) in Chrome and select 'Install app' or 'Add to Home screen' 🚀");
+      } else if (import.meta.env.DEV) {
+        alert("PWA Install prompt only works in production or when the browser detects installability. In Dev Mode, this is just a preview of the button! 🚀");
+      }
+      return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === "accepted") setShowInstallBtn(false);
@@ -65,7 +74,7 @@ export function Footer() {
               The premium document toolkit trusted by thousands. Fast, secure, and beautifully crafted.
             </p>
 
-            {(showInstallBtn || isIOS || import.meta.env.DEV) && (
+            {(showInstallBtn || isIOS || isAndroid || import.meta.env.DEV) && (
               <div className="mt-6 md:hidden">
                 <Button 
                   variant="outline" 
@@ -73,7 +82,7 @@ export function Footer() {
                   className="bg-white/5 border-white/10 hover:bg-white/10 text-white gap-2 rounded-xl"
                 >
                   <Download className="h-4 w-4" />
-                  Install App {isIOS ? "(iOS)" : ""}
+                  Install App
                 </Button>
               </div>
             )}

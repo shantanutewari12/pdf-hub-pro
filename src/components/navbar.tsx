@@ -21,17 +21,16 @@ export function Navbar() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBtn, setShowInstallBtn] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handler, { passive: true });
 
-    // iOS Detection
-    const checkIOS = () => {
-      const userAgent = window.navigator.userAgent.toLowerCase();
-      return /iphone|ipad|ipod/.test(userAgent);
-    };
-    setIsIOS(checkIOS());
+    // Platform Detection
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    setIsIOS(/iphone|ipad|ipod/.test(userAgent));
+    setIsAndroid(/android/.test(userAgent));
 
     // PWA Install Logic
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -63,7 +62,9 @@ export function Navbar() {
       return;
     }
     if (!deferredPrompt) {
-      if (import.meta.env.DEV) {
+      if (isAndroid) {
+        alert("To install on Android: Tap the 3 dots (⋮) in Chrome and select 'Install app' or 'Add to Home screen' 🚀");
+      } else if (import.meta.env.DEV) {
         alert("PWA Install prompt only works in production or when the browser detects installability. In Dev Mode, this is just a preview of the button! 🚀");
       }
       return;
@@ -144,7 +145,7 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-1.5 md:hidden">
-             {(showInstallBtn || isIOS || import.meta.env.DEV) && (
+             {(showInstallBtn || isIOS || isAndroid || import.meta.env.DEV) && (
                <button
                 onClick={handleInstallClick}
                 className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
@@ -185,7 +186,7 @@ export function Navbar() {
                 </Link>
               ))}
               
-              {(showInstallBtn || isIOS || import.meta.env.DEV) && (
+              {(showInstallBtn || isIOS || isAndroid || import.meta.env.DEV) && (
                 <button
                   onClick={handleInstallClick}
                   className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-base font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
