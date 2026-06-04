@@ -3,7 +3,10 @@ import { motion } from "framer-motion";
 import { FileText, AlertTriangle } from "lucide-react";
 import { SignUp } from "@clerk/clerk-react";
 
-const CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined;
+const CLERK_KEY = (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ||
+  (typeof process !== "undefined" ? process.env.VITE_CLERK_PUBLISHABLE_KEY : undefined)) as
+  | string
+  | undefined;
 const hasClerk = Boolean(CLERK_KEY && !CLERK_KEY.startsWith("pk_test_REPLACE"));
 
 export const Route = createFileRoute("/auth/register")({

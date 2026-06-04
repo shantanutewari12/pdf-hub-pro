@@ -30,8 +30,11 @@ import { registerSW } from "virtual:pwa-register";
 
 import appCss from "../styles.css?url";
 
-const CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined;
-const hasClerk = CLERK_KEY && !CLERK_KEY.startsWith("pk_test_REPLACE");
+const CLERK_KEY = (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ||
+  (typeof process !== "undefined" ? process.env.VITE_CLERK_PUBLISHABLE_KEY : undefined)) as
+  | string
+  | undefined;
+const hasClerk = Boolean(CLERK_KEY && !CLERK_KEY.startsWith("pk_test_REPLACE"));
 
 function NotFoundComponent() {
   return (
