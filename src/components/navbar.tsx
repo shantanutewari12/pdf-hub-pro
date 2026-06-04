@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FileText, Menu, X, ChevronRight, Download } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useProStatus } from "@/lib/pro-store";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -15,6 +16,7 @@ const links = [
 
 export function Navbar() {
   const { user, signOut } = useAuth();
+  const { isPro } = useProStatus();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -100,8 +102,13 @@ export function Navbar() {
               <FileText className="h-5.5 w-5.5 text-white" strokeWidth={2.5} />
             </div>
           </div>
-          <span className="font-display text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+          <span className="font-display text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 flex items-center gap-1.5">
             PDF<span className="text-gradient-gold">Master</span>
+            {isPro && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-gradient-gold px-2 py-0.5 text-[10px] font-bold text-emerald-deep shadow-gold uppercase tracking-wider">
+                Pro
+              </span>
+            )}
           </span>
         </Link>
 

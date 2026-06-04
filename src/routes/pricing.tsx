@@ -1,10 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, Sparkles, Zap, Brain, PartyPopper, X } from "lucide-react";
+import {
+  Check,
+  Sparkles,
+  Zap,
+  Brain,
+  PartyPopper,
+  X,
+  CreditCard,
+  Lock,
+  ShieldCheck,
+  Loader2,
+  CheckCircle2,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
+import { useProStatus } from "@/lib/pro-store";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -71,7 +85,8 @@ const plans = [
 ];
 
 function PricingPage() {
-  const [showFreeModal, setShowFreeModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const { isPro } = useProStatus();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -159,10 +174,11 @@ function PricingPage() {
                         {p.cta}
                       </Button>
                     </Link>
-                  ) : (
+                  ) : p.name === "Pro" ? (
                     <div className="mt-8 w-full">
                       <Button
-                        onClick={() => setShowFreeModal(true)}
+                        onClick={() => setShowPaymentModal(true)}
+                        disabled={isPro}
                         className={`w-full ${
                           p.featured
                             ? "bg-gradient-gold text-emerald-deep hover:opacity-95 shadow-gold font-semibold"
@@ -170,9 +186,18 @@ function PricingPage() {
                         }`}
                         size="lg"
                       >
-                        {p.cta}
+                        {isPro ? "Active Pro Plan" : p.cta}
                       </Button>
                     </div>
+                  ) : (
+                    <Link to={p.href} className="mt-8 block w-full">
+                      <Button
+                        className="w-full bg-gradient-emerald text-primary-foreground hover:opacity-90"
+                        size="lg"
+                      >
+                        {p.cta}
+                      </Button>
+                    </Link>
                   )}
                 </motion.div>
               ))}
@@ -182,113 +207,248 @@ function PricingPage() {
       </main>
       <Footer />
 
-      {/* Free Animation Modal */}
+      {/* Premium Dummy Payment Modal */}
       <AnimatePresence>
-        {showFreeModal && <FreeAnimationModal onClose={() => setShowFreeModal(false)} />}
+        {showPaymentModal && <PaymentModal onClose={() => setShowPaymentModal(false)} />}
       </AnimatePresence>
     </div>
   );
 }
 
-function FreeAnimationModal({ onClose }: { onClose: () => void }) {
+function PaymentModal({ onClose }: { onClose: () => void }) {
+  const { upgradeToPro } = useProStatus();
+  const [step, setStep] = useState<"checkout" | "processing" | "success">("checkout");
+  const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
+  const [expiry, setExpiry] = useState("12/29");
+  const [cvv, setCvv] = useState("123");
+  const [name, setName] = useState("Amit Sharma");
+
+  const [processingMsg, setProcessingMsg] = useState("Initiating secure gateway...");
+
   const [particles] = useState(() =>
-    Array.from({ length: 60 }, (_, i) => ({
+    Array.from({ length: 70 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
-      delay: Math.random() * 0.5,
+      delay: Math.random() * 0.4,
       duration: 1.5 + Math.random() * 2,
       color: ["#10b981", "#f59e0b", "#3b82f6", "#ef4444", "#8b5cf6", "#ec4899"][i % 6],
       size: 4 + Math.random() * 8,
     })),
   );
 
+  const handlePay = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cardNumber || !expiry || !cvv || !name) {
+      toast.error("Please enter all card details!");
+      return;
+    }
+
+    setStep("processing");
+
+    const messages = [
+      "Securing connection...",
+      "Authorizing amount ₹50.00...",
+      "Verifying card and CVV safety...",
+      "Issuing token and confirming transaction...",
+      "Activating PDF Master Pro membership...",
+    ];
+
+    let currentMsgIdx = 0;
+    const interval = setInterval(() => {
+      if (currentMsgIdx < messages.length - 1) {
+        currentMsgIdx++;
+        setProcessingMsg(messages[currentMsgIdx]);
+      } else {
+        clearInterval(interval);
+        setStep("success");
+      }
+    }, 900);
+  };
+
+  const handleFinish = () => {
+    upgradeToPro();
+    toast.success("Welcome to Pro! Premium features are unlocked. 🎉");
+    onClose();
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.8, opacity: 0, y: 20 }}
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.8, opacity: 0, y: 20 }}
-        className="relative w-full max-w-md overflow-hidden text-center bg-card rounded-3xl p-8 sm:p-12 shadow-elevated border border-primary/20"
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="relative w-full max-w-md overflow-hidden bg-card rounded-3xl p-6 sm:p-8 shadow-elevated border border-border"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Confetti */}
-        {particles.map((p) => (
-          <motion.div
-            key={p.id}
-            initial={{ opacity: 1, y: -20, x: `${p.x}%` }}
-            animate={{ opacity: 0, y: 400, rotate: 360 * (Math.random() > 0.5 ? 1 : -1) }}
-            transition={{ delay: p.delay, duration: p.duration, ease: "easeOut" }}
-            className="absolute top-0 rounded-sm pointer-events-none z-10"
-            style={{ left: `${p.x}%`, width: p.size, height: p.size, backgroundColor: p.color }}
-          />
-        ))}
-
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted text-muted-foreground transition z-30"
+          disabled={step === "processing"}
         >
           <X className="h-5 w-5" />
         </button>
 
-        <div className="relative mx-auto w-24 h-24 mb-6 z-20">
-          <motion.div
-            className="absolute inset-0 rounded-full bg-primary/20"
-            animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-          />
-          <motion.div
-            className="absolute inset-0 rounded-full bg-primary/10"
-            animate={{ scale: [1, 2, 1], opacity: [0.3, 0, 0.3] }}
-            transition={{ repeat: Infinity, duration: 2, delay: 0.3 }}
-          />
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", delay: 0.2, stiffness: 200 }}
-            className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-gold shadow-gold"
-          >
-            <PartyPopper className="h-12 w-12 text-emerald-deep" strokeWidth={2} />
-          </motion.div>
-        </div>
+        {step === "checkout" && (
+          <div>
+            <div className="flex items-center gap-2 mb-4 text-accent">
+              <CreditCard className="h-5 w-5" />
+              <span className="font-semibold text-sm tracking-wide uppercase">Secure Checkout</span>
+            </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="z-20 relative"
-        >
-          <h3 className="font-display text-3xl sm:text-4xl font-bold text-gradient-emerald mb-4 uppercase tracking-wide">
-            Chill!
-          </h3>
-          <p className="text-foreground text-lg sm:text-xl font-medium mb-3">
-            Abhi ke lie sab <span className="font-bold text-primary px-1">FREE</span> hain!
-          </p>
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            Abhi chlaao bindaass free. No credit card, no subscription needed right now. Enjoy all
-            pro features on the house! 🎉
-          </p>
-        </motion.div>
+            <h3 className="font-display text-2xl font-bold mb-1">Upgrade to Pro</h3>
+            <p className="text-muted-foreground text-sm mb-6">
+              Get unlimited access to all 30+ premium PDF tools and AI features.
+            </p>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-8 z-20 relative"
-        >
-          <Button
-            onClick={onClose}
-            size="lg"
-            className="w-full bg-gradient-emerald text-primary-foreground hover:opacity-90 shadow-soft"
-          >
-            Awesome, thanks!
-          </Button>
-        </motion.div>
+            {/* Plan Card */}
+            <div className="bg-primary/5 rounded-2xl p-4 border border-primary/10 mb-6 flex justify-between items-center">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
+                  Plan Details
+                </p>
+                <p className="text-base font-semibold mt-0.5">PDF Master Pro Subscription</p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-gradient-emerald">₹50</p>
+                <p className="text-[10px] text-muted-foreground">/ month</p>
+              </div>
+            </div>
+
+            {/* Dummy Payment Form */}
+            <form onSubmit={handlePay} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold mb-1 text-muted-foreground">
+                  Cardholder Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
+                  placeholder="e.g. Amit Sharma"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold mb-1 text-muted-foreground">
+                  Card Number
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-background pl-10 pr-3.5 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition font-mono"
+                    placeholder="4242 4242 4242 4242"
+                  />
+                  <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-muted-foreground" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-1 text-muted-foreground">
+                    Expiry Date
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={expiry}
+                    onChange={(e) => setExpiry(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition font-mono"
+                    placeholder="MM/YY"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1 text-muted-foreground">
+                    CVV
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    maxLength={4}
+                    value={cvv}
+                    onChange={(e) => setCvv(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition font-mono"
+                    placeholder="•••"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-gold text-emerald-deep font-semibold shadow-gold hover:opacity-95 py-6 rounded-xl flex justify-center items-center gap-1.5"
+                >
+                  <Lock className="h-4 w-4" /> Pay ₹50.00
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground pt-1">
+                <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                <span>Dummy Payment. No real bank details are shared or charged.</span>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {step === "processing" && (
+          <div className="py-12 flex flex-col items-center justify-center text-center">
+            <Loader2 className="h-12 w-12 text-primary animate-spin mb-6" />
+            <h4 className="font-display text-xl font-bold mb-2">Processing Payment</h4>
+            <p className="text-sm text-muted-foreground max-w-xs">{processingMsg}</p>
+          </div>
+        )}
+
+        {step === "success" && (
+          <div className="relative text-center py-4">
+            {/* Confetti */}
+            {particles.map((p) => (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 1, y: -20, x: `${p.x}%` }}
+                animate={{ opacity: 0, y: 350, rotate: 360 * (Math.random() > 0.5 ? 1 : -1) }}
+                transition={{ delay: p.delay, duration: p.duration, ease: "easeOut" }}
+                className="absolute top-0 rounded-sm pointer-events-none z-10"
+                style={{ left: `${p.x}%`, width: p.size, height: p.size, backgroundColor: p.color }}
+              />
+            ))}
+
+            <div className="relative mx-auto w-20 h-20 mb-6 flex items-center justify-center rounded-full bg-gradient-gold shadow-gold text-emerald-deep">
+              <CheckCircle2 className="h-12 w-12" strokeWidth={2.5} />
+            </div>
+
+            <h3 className="font-display text-2xl font-bold text-gradient-emerald mb-2">
+              Payment Successful!
+            </h3>
+            <p className="text-foreground text-sm font-medium mb-1">
+              You are now a <span className="font-bold text-accent">PRO</span> Member
+            </p>
+            <p className="text-xs text-muted-foreground mb-4 font-mono">
+              TXN ID: TXN_{Math.floor(100000 + Math.random() * 900000)}
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto mb-6">
+              Thank you! Your transaction completed successfully. Unlimited conversions, large file
+              support, and all AI features have been enabled.
+            </p>
+
+            <Button
+              onClick={handleFinish}
+              size="lg"
+              className="w-full bg-gradient-emerald text-primary-foreground hover:opacity-90 shadow-soft font-semibold py-6 rounded-xl"
+            >
+              Let's Start! 🚀
+            </Button>
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );

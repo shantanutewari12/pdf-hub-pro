@@ -15,13 +15,36 @@ function createSupabaseClient() {
     );
   }
 
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  const client = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     auth: {
       storage: typeof window !== "undefined" ? localStorage : undefined,
       persistSession: true,
       autoRefreshToken: true,
     },
+    global: {
+      fetch: (...args) =>
+        fetch(...args).catch((err) => {
+          // Silently swallow background token-refresh network errors so they
+          // don't pollute unrelated features (translate, compress, etc.)
+          if (
+            err instanceof TypeError &&
+            err.message === "Failed to fetch" &&
+            typeof args[0] === "string" &&
+            (args[0] as string).includes("token?grant_type=refresh_token")
+          ) {
+            // Return a fake 503 so Supabase's retry logic still works
+            // but the error is no longer an unhandled rejection
+            return new Response(JSON.stringify({ error: "network_error" }), {
+              status: 503,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          throw err;
+        }),
+    },
   });
+
+  return client;
 }
 
 let _supabase: ReturnType<typeof createSupabaseClient> | undefined;

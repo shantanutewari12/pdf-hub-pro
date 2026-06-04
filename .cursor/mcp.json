@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "jetro": {
+      "type": "stdio",
+      "command": "C:\\Users\\lko42\\.jetro\\runtime\\node-win32-x64.exe",
+      "args": ["C:\\Users\\lko42\\.jetro\\mcp-server\\index.js"],
+      "env": {
+        "JET_WORKSPACE": "c:\\Users\\lko42\\OneDrive\\Desktop\\pdf-hub-pro",
+        "JET_API_URL": "https://api.jetro.ai",
+        "PATH": "C:\\Users\\lko42\\.jetro\\runtime;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\Git\\cmd;C:\\Users\\lko42\\AppData\\Local\\nvm;C:\\nvm4w\\nodejs;C:\\Users\\lko42\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\lko42\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\lko42\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\\Users\\lko42\\AppData\\Local\\Programs\\Antigravity\\bin;C:\\Users\\lko42\\AppData\\Local\\nvm;C:\\nvm4w\\nodejs"
+      }
+    }
+  }
+}

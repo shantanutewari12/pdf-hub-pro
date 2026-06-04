@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Brain,
   Sparkles,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -483,10 +484,11 @@ export function UploadDropzone({
               </motion.div>
             )}
 
-            {/* Action buttons */}
-            <div className="mt-4 flex gap-2 justify-end">
+            {/* Action buttons — always visible while files are loaded */}
+            <div className="mt-4 flex gap-2 justify-between items-center">
               <Button
                 variant="ghost"
+                size="sm"
                 onClick={() => {
                   setFiles([]);
                   setResult(null);
@@ -494,16 +496,30 @@ export function UploadDropzone({
                   setShowPreview(false);
                 }}
                 disabled={processing}
+                className="gap-1.5 text-muted-foreground hover:text-foreground"
               >
-                Clear
+                <RotateCcw className="h-3.5 w-3.5" />
+                Reset
               </Button>
-              <Button
-                onClick={start}
-                disabled={processing}
-                className="bg-gradient-emerald text-primary-foreground hover:opacity-90"
-              >
-                {processing ? (isAI ? "AI Processing…" : "Processing…") : `Start (${files.length})`}
-              </Button>
+              {!result && (
+                <Button
+                  onClick={start}
+                  disabled={processing}
+                  className="bg-gradient-emerald text-primary-foreground hover:opacity-90"
+                >
+                  {processing
+                    ? isAI
+                      ? "AI Processing…"
+                      : "Processing…"
+                    : `Start (${files.length})`}
+                </Button>
+              )}
+              {result && !processing && (
+                <Button onClick={start} disabled={processing} variant="outline" className="gap-1.5">
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Convert again
+                </Button>
+              )}
             </div>
           </motion.div>
         )}

@@ -1,3 +1,11 @@
+// ─── Word conversion functions are in their own module ───────────────────────
+// Re-export for external consumers (routes, etc.)
+export { wordToPdf, pdfToWord, imageToWord } from "./word-processors";
+// Local import so toolHandlers inside this file can call them directly
+import { wordToPdf, pdfToWord, imageToWord } from "./word-processors";
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 async function loadPdfLib() {
   return import("pdf-lib");
 }
@@ -425,36 +433,7 @@ export async function pdfToText(file: File): Promise<ProcessResult> {
   };
 }
 
-// ---------- PDF -> Word (pixel-perfect: render pages as images) ----------
-export async function pdfToWord(file: File): Promise<ProcessResult> {
-  const pdfjs = await loadPdfJs();
-  const pdf = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
-
-  let htmlBody = "";
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const viewportOriginal = page.getViewport({ scale: 1 });
-    const viewport = page.getViewport({ scale: 2.5 }); // high-res for crisp text
-    const canvas = document.createElement("canvas");
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    const ctx = canvas.getContext("2d")!;
-    await page.render({ canvasContext: ctx, canvas, viewport }).promise;
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
-
-    // Set explicit width so Word doesn't stretch the high-res image outside the page
-    htmlBody += `<div style="text-align:center;margin:0;padding:0"><img src="${dataUrl}" width="${Math.floor(viewportOriginal.width)}" style="display:block;" /></div>`;
-    if (i < pdf.numPages) {
-      htmlBody += `<br clear="all" style="page-break-before:always" />`;
-    }
-  }
-
-  const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>@page{margin:0.5cm;}body{margin:0;padding:0;}div{margin:0;padding:0;}</style></head><body>${htmlBody}</body></html>`;
-  return {
-    blob: new Blob(["\ufeff", html], { type: "application/msword" }),
-    filename: stripExt(file.name) + ".doc",
-  };
-}
+// pdfToWord → moved to word-processors.ts (re-exported at top of this file)
 
 // ---------- PDF -> Excel (CSV with tab-separated columns) ----------
 export async function pdfToExcel(file: File): Promise<ProcessResult> {
@@ -504,91 +483,9 @@ export async function ocrToPdf(files: File[]): Promise<ProcessResult> {
   };
 }
 
-// ---------- Image -> Word (Embed images into Word doc) ----------
-export async function imageToWord(files: File[]): Promise<ProcessResult> {
-  let htmlBody = "";
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const dataUrl = await new Promise<string>((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.readAsDataURL(file);
-    });
-    // Set explicit width to fit inside a standard Word page
-    htmlBody += `<div style="text-align:center;margin:0;padding:0"><img src="${dataUrl}" width="600" style="display:block;" /></div>`;
-    if (i < files.length - 1) {
-      htmlBody += `<br clear="all" style="page-break-before:always" />`;
-    }
-  }
+// imageToWord → moved to word-processors.ts (re-exported at top of this file)
 
-  const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>@page{margin:0.5cm;}body{margin:0;padding:0;}div{margin:0;padding:0;}</style></head><body>${htmlBody}</body></html>`;
-  return {
-    blob: new Blob(["\ufeff", html], { type: "application/msword" }),
-    filename: stripExt(files[0].name) + "-converted.doc",
-  };
-}
-
-// ---------- Word -> PDF (Robust Text-based Renderer) ----------
-export async function wordToPdf(file: File): Promise<ProcessResult> {
-  console.log("Starting Robust Word to PDF conversion:", file.name);
-  const mammoth = await import("mammoth");
-  const jsPDF = await loadJsPdf();
-
-  const arrayBuffer = await file.arrayBuffer();
-
-  // Convert to HTML first to get some structure
-  const { value: html } = await mammoth.convertToHtml({ arrayBuffer });
-
-  // Create jsPDF instance
-  const doc = new jsPDF("p", "pt", "a4");
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 40;
-  const contentWidth = pageWidth - margin * 2;
-
-  let y = margin;
-
-  // Simple HTML parser for basic tags
-  const tempDiv = document.createElement("div");
-  tempDiv.innerHTML = html;
-
-  const nodes = Array.from(tempDiv.childNodes);
-
-  for (const node of nodes) {
-    if (y > doc.internal.pageSize.getHeight() - margin) {
-      doc.addPage();
-      y = margin;
-    }
-
-    const tagName = (node as HTMLElement).tagName?.toLowerCase();
-    const text = node.textContent?.trim();
-    if (!text) continue;
-
-    if (tagName === "h1") {
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(22);
-      const lines = doc.splitTextToSize(text, contentWidth);
-      doc.text(lines, margin, y);
-      y += lines.length * 28;
-    } else if (tagName === "h2" || tagName === "h3") {
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(16);
-      const lines = doc.splitTextToSize(text, contentWidth);
-      doc.text(lines, margin, y);
-      y += lines.length * 20;
-    } else {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(11);
-      const lines = doc.splitTextToSize(text, contentWidth);
-      doc.text(lines, margin, y);
-      y += lines.length * 14;
-    }
-    y += 10; // spacing between blocks
-  }
-
-  const blob = doc.output("blob");
-  const previewUrl = await generatePdfPreview(blob);
-  return { blob, filename: stripExt(file.name) + ".pdf", previewUrl };
-}
+// wordToPdf → moved to word-processors.ts (re-exported at top of this file)
 
 // ---------- Text/HTML -> PDF ----------
 export async function textToPdf(file: File): Promise<ProcessResult> {
@@ -735,6 +632,57 @@ function devanagariToRoman(text: string): string {
     }
   }
   return r;
+}
+
+// ---------- Lock PDF with password (re-renders pages as images, applies jsPDF encryption) ----------
+export async function lockPdf(file: File, password: string): Promise<ProcessResult> {
+  if (!password || password.trim().length < 1) {
+    throw new Error("Please enter a password to lock the PDF.");
+  }
+
+  const pdfjs = await loadPdfJs();
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+  const jsPDFCtor = await loadJsPdf();
+
+  const firstPage = await pdf.getPage(1);
+  const viewport = firstPage.getViewport({ scale: 1 });
+  const isLandscape = viewport.width > viewport.height;
+
+  const doc = new jsPDFCtor({
+    orientation: isLandscape ? "landscape" : "portrait",
+    unit: "mm",
+    format: "a4",
+    encryption: {
+      userPassword: password,
+      ownerPassword: password + "_owner_" + Date.now(),
+      userPermissions: ["print"],
+    } as any,
+  });
+
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    if (i > 1) doc.addPage();
+    const page = await pdf.getPage(i);
+    const scale = 2; // higher scale = better quality
+    const vp = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = vp.width;
+    canvas.height = vp.height;
+    const ctx = canvas.getContext("2d")!;
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    const imgData = canvas.toDataURL("image/jpeg", 0.92);
+    doc.addImage(imgData, "JPEG", 0, 0, pageW, pageH);
+  }
+
+  const pdfBytes = doc.output("arraybuffer");
+  const baseName = file.name.replace(/\.pdf$/i, "");
+  return {
+    blob: new Blob([pdfBytes], { type: "application/pdf" }),
+    filename: `${baseName}-locked.pdf`,
+  };
 }
 
 // ---------- Google Translate (unofficial, free, no key needed) ----------
@@ -949,6 +897,14 @@ export const toolHandlers: Record<string, ToolHandler> = {
     promptDefault: "",
     run: (f, p) => protectPdf(f[0], p ?? ""),
   },
+  "lock-pdf": {
+    accept: "application/pdf",
+    multiple: false,
+    promptLabel: "Password to lock the PDF",
+    promptPlaceholder: "Enter a strong password",
+    promptDefault: "",
+    run: (f, p) => lockPdf(f[0], p ?? ""),
+  },
   "pdf-to-image": { accept: "application/pdf", multiple: false, run: (f) => pdfToImages(f[0]) },
   "pdf-to-word": { accept: "application/pdf", multiple: false, run: (f) => pdfToWord(f[0]) },
   "pdf-to-excel": { accept: "application/pdf", multiple: false, run: (f) => pdfToExcel(f[0]) },
@@ -1012,7 +968,8 @@ export const toolHandlers: Record<string, ToolHandler> = {
     promptType: "select",
     promptLabel: "Translate to",
     promptDefault: "hi",
-    promptOptions: AI_LANG_OPTIONS.filter((l) => l.value !== "en"),
+    // "wa" (WhatsApp Hinglish) is intentionally excluded here — it lives only in ai-summarize
+    promptOptions: AI_LANG_OPTIONS.filter((l) => l.value !== "en" && l.value !== "wa"),
     supportRetranslate: true,
     run: (f, p) => aiTranslate(f[0], p ?? "hi"),
   },

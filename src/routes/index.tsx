@@ -225,7 +225,7 @@ function Hero() {
                           navigate({
                             to: "/tools/$slug",
                             params: { slug: t.slug },
-                            state: (prev: any) => ({
+                            state: (prev: Record<string, unknown>) => ({
                               ...prev,
                               initialFiles: uploadedFiles,
                             }),
@@ -271,7 +271,7 @@ function Hero() {
 
 function Stats() {
   const stats = [
-    { v: "28+", l: "Premium tools" },
+    { v: "30+", l: "Premium tools" },
     { v: "12M+", l: "Files processed" },
     { v: "256-bit", l: "Encryption" },
     { v: "4.9/5", l: "User rating" },

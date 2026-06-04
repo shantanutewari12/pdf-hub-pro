@@ -27,6 +27,8 @@ import {
   MessageSquare,
   Languages,
   PenLine,
+  FileCode2,
+  KeyRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -122,6 +124,13 @@ export const tools: Tool[] = [
     name: "HTML to PDF",
     description: "Capture web pages as PDFs.",
     icon: Globe,
+    category: "convert",
+  },
+  {
+    slug: "markdown-converter",
+    name: "Markdown ↔ PDF",
+    description: "Convert PDF to Markdown or Markdown to PDF.",
+    icon: FileCode2,
     category: "convert",
   },
 
@@ -233,6 +242,14 @@ export const tools: Tool[] = [
     description: "Add digital or drawn signatures.",
     icon: Signature,
     category: "secure",
+  },
+  {
+    slug: "lock-pdf",
+    name: "Lock PDF",
+    description: "Set a password to restrict access.",
+    icon: KeyRound,
+    category: "secure",
+    popular: true,
   },
 
   {

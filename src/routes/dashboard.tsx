@@ -16,6 +16,7 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ToolCard } from "@/components/tool-card";
 import { useAuth } from "@/lib/auth-context";
+import { useProStatus } from "@/lib/pro-store";
 import { popularTools } from "@/lib/tools";
 import { Button } from "@/components/ui/button";
 import { getActivities, clearActivities, type Activity } from "@/lib/activity";
@@ -38,6 +39,7 @@ function timeAgo(ts: number): string {
 
 function DashboardPage() {
   const { user, loading } = useAuth();
+  const { isPro, downgradeToFree } = useProStatus();
   const navigate = useNavigate();
   const [activities, setActivities] = useState<Activity[]>([]);
 
@@ -126,35 +128,67 @@ function DashboardPage() {
             </div>
           </motion.div>
 
-          {/* Pro upsell */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-emerald p-6 sm:p-8 shadow-elevated"
-          >
-            <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-accent/20 blur-3xl" />
-            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-gold px-3 py-1 text-xs font-bold text-emerald-deep shadow-gold">
-                  <Crown className="h-3 w-3" /> UPGRADE
+          {/* Pro upsell or Active subscription */}
+          {isPro ? (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 to-teal-600 p-6 sm:p-8 shadow-elevated border border-emerald-500/20 text-white"
+            >
+              <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
+                    <Crown className="h-3 w-3 text-gold animate-bounce" /> Active Pro Plan
+                  </div>
+                  <h3 className="mt-3 font-display text-xl sm:text-2xl font-bold text-white">
+                    You are a PDF Master Pro Member! 🎉
+                  </h3>
+                  <p className="mt-1 text-sm text-emerald-100">
+                    Enjoy unlimited processing, up to 5 GB file sizes, and all 🤖 AI tools unlocked.
+                  </p>
                 </div>
-                <h3 className="mt-3 font-display text-xl sm:text-2xl font-bold text-primary-foreground">
-                  Unlock AI tools & unlimited processing
-                </h3>
-                <p className="mt-1 text-sm text-primary-foreground/80">
-                  Just ₹50/month — summarize, translate, batch process
-                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => downgradeToFree()}
+                    className="bg-white/10 text-white border-white/20 hover:bg-white/25 hover:text-white rounded-xl font-semibold whitespace-nowrap shadow-soft transition-all"
+                  >
+                    Downgrade (Test)
+                  </Button>
+                </div>
               </div>
-              <Link to="/pricing">
-                <Button
-                  size="lg"
-                  className="bg-gradient-gold text-emerald-deep hover:opacity-95 shadow-gold font-semibold whitespace-nowrap"
-                >
-                  See plans <ArrowUpRight className="h-4 w-4 ml-1" />
-                </Button>
-              </Link>
-            </div>
-          </motion.div>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative overflow-hidden rounded-3xl bg-gradient-emerald p-6 sm:p-8 shadow-elevated"
+            >
+              <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-accent/20 blur-3xl" />
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-gold px-3 py-1 text-xs font-bold text-emerald-deep shadow-gold">
+                    <Crown className="h-3 w-3" /> UPGRADE
+                  </div>
+                  <h3 className="mt-3 font-display text-xl sm:text-2xl font-bold text-primary-foreground">
+                    Unlock AI tools & unlimited processing
+                  </h3>
+                  <p className="mt-1 text-sm text-primary-foreground/80">
+                    Just ₹50/month — summarize, translate, batch process
+                  </p>
+                </div>
+                <Link to="/pricing">
+                  <Button
+                    size="lg"
+                    className="bg-gradient-gold text-emerald-deep hover:opacity-95 shadow-gold font-semibold whitespace-nowrap"
+                  >
+                    See plans <ArrowUpRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          )}
 
           {/* Quick tools */}
           <div>

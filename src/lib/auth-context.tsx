@@ -1,61 +1,47 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { createContext, useContext, type ReactNode } from "react";
+import { useUser, useClerk } from "@clerk/clerk-react";
 
-type AuthCtx = {
-  user: User | null;
-  session: Session | null;
+// ─── Auth context type ────────────────────────────────────────────────────────
+export type AuthCtx = {
+  user: { email: string | undefined; id: string } | null;
+  session: null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 };
 
-const Ctx = createContext<AuthCtx | undefined>(undefined);
+export const AuthCtxInternal = createContext<AuthCtx | undefined>(undefined);
 
+// ── Provider when Clerk IS available (wrapped inside <ClerkProvider>) ─────────
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, isLoaded } = useUser();
+  const { signOut: clerkSignOut } = useClerk();
 
-  useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-    });
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      setLoading(false);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
-
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error as Error | null };
-  };
-  const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
-    });
-    return { error: error as Error | null };
-  };
-  const signOut = async () => {
-    await supabase.auth.signOut();
+  const value: AuthCtx = {
+    user: user ? { id: user.id, email: user.primaryEmailAddress?.emailAddress } : null,
+    session: null,
+    loading: !isLoaded,
+    signOut: async () => {
+      await clerkSignOut();
+    },
   };
 
-  return (
-    <Ctx.Provider value={{ user, session, loading, signIn, signUp, signOut }}>
-      {children}
-    </Ctx.Provider>
-  );
+  return <AuthCtxInternal.Provider value={value}>{children}</AuthCtxInternal.Provider>;
 }
 
+// ── Fallback provider when Clerk key is NOT set ───────────────────────────────
+export function NoAuthProvider({ children }: { children: ReactNode }) {
+  const value: AuthCtx = {
+    user: null,
+    session: null,
+    loading: false,
+    signOut: async () => {},
+  };
+  return <AuthCtxInternal.Provider value={value}>{children}</AuthCtxInternal.Provider>;
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
-  const v = useContext(Ctx);
+  const v = useContext(AuthCtxInternal);
   if (!v) throw new Error("useAuth must be used inside AuthProvider");
   return v;
 }

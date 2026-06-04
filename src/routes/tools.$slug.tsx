@@ -19,8 +19,11 @@ const RotateEditor = lazy(() =>
 const CropEditor = lazy(() =>
   import("@/components/crop-editor").then((m) => ({ default: m.CropEditor })),
 );
+const MarkdownPdfTool = lazy(() =>
+  import("@/components/markdown-pdf-tool").then((m) => ({ default: m.MarkdownPdfTool })),
+);
 
-const VISUAL_EDITORS = new Set(["edit-pdf", "crop-pdf", "rotate-pdf"]);
+const VISUAL_EDITORS = new Set(["edit-pdf", "crop-pdf", "rotate-pdf", "markdown-converter"]);
 
 export const Route = createFileRoute("/tools/$slug")({
   loader: ({ params }) => {
@@ -222,6 +225,15 @@ function VisualEditorFlow({ slug, initialFile }: { slug: string; initialFile?: F
           {slug === "rotate-pdf" && <RotateEditor file={file} />}
         </Suspense>
       </div>
+    );
+  }
+
+  // markdown-converter manages its own file state entirely
+  if (slug === "markdown-converter") {
+    return (
+      <Suspense fallback={<DropzoneFallback />}>
+        <MarkdownPdfTool />
+      </Suspense>
     );
   }
 
